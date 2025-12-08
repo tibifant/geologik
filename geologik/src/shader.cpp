@@ -3,6 +3,7 @@
 #include "texture.h"
 #include "framebuffer.h"
 #include "io.h"
+#include "vmath.h"
 
 #include <GL/glew.h>
 

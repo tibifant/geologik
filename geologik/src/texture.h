@@ -1,11 +1,18 @@
 #pragma once
 
-#include "platform.h"
+#include "core.h"
 
 //////////////////////////////////////////////////////////////////////////
 
+enum texture_format_type
+{
+  tft_unsigned_byte,
+  tft_unsigned_short,
+};
+
 struct texture
 {
+  enum texture_format_type textureFormatType;
   vec2s resolution = vec2s(0);
   uint32_t textureId = 0; // this is actually a GLuint.
   uint32_t textureUnit = 0; // this is actually a GLuint.

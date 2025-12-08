@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core.h"
+
 struct shader_name_ref
 {
   char name[28];

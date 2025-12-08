@@ -81,7 +81,21 @@ lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolu
   LS_ERROR_IF(!pTexture->initialized, lsR_ResourceStateInvalid);
 
   glBindTexture(GL_TEXTURE_2D, pTexture->textureId);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
+
+  switch (pTexture->textureFormatType)
+  {
+  case tft_unsigned_byte:
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
+    break;
+
+  case tft_unsigned_short:
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, pData);
+    break;
+
+  deafult:
+    lsAssert(false); // not implemented.
+    break;
+  }
 
   pTexture->resolution = resolution;
   pTexture->uploaded = true;
