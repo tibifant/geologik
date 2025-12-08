@@ -32,6 +32,8 @@ lsResult shader_createFromFile_vertex_fragment(shader *pShader, const char *vert
 {
   lsResult result = lsR_Success;
 
+  LS_ERROR_IF(pShader->type != st_vertex_fragment, lsR_InvalidParameter);
+
   char *vertexSource = nullptr;
   char *fragmentSource = nullptr;
 
@@ -58,6 +60,8 @@ epilogue:
 lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
 {
   lsResult result = lsR_Success;
+
+  LS_ERROR_IF(pShader->type != st_compute, lsR_InvalidParameter);
 
   char *computeSource = nullptr;
 
@@ -216,6 +220,8 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 {
   lsResult result = lsR_Success;
 
+  LS_ERROR_IF(pShader->type != st_vertex_fragment, lsR_InvalidParameter);
+
   char *cleanVertexSource = nullptr;
   char *cleanFragmentSource = nullptr;
 
@@ -310,6 +316,8 @@ epilogue:
 lsResult shader_create_compute_internal(shader *pShader, const char *computeSource, const bool requestNewProgram)
 {
   lsResult result = lsR_Success;
+
+  LS_ERROR_IF(pShader->type != st_compute, lsR_InvalidParameter);
 
   char *cleanSource = nullptr;
 

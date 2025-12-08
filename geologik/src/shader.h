@@ -1,7 +1,5 @@
 #pragma once
 
-#include "platform.h"
-
 struct shader_name_ref
 {
   char name[28];
@@ -10,8 +8,7 @@ struct shader_name_ref
 
 enum shader_type
 {
-  st_fragment,
-  st_vertex,
+  st_vertex_fragment,
   st_compute,
 };
 
@@ -19,7 +16,8 @@ struct shader
 {
   uint32_t shaderProgram = 0; // actually a GLuint.
   bool initialized = false;
-  enum shader_type;
+  
+  enum shader_type type;
 
 //#ifdef _DEBUG
 //  // if loaded from file:
