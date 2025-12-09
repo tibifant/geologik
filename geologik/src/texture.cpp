@@ -1,5 +1,4 @@
 #include "texture.h"
-
 #include "io.h"
 
 #include "GL/glew.h"

@@ -2,7 +2,7 @@
 
 attribute ivec2 position;
 
-uniform sampler2D textureA;
+uniform sampler2D textureA; // storage buffer object
 uniform sampler2D textureB;
 
 out ivec2 _texCoord;
@@ -15,4 +15,6 @@ void main ()
   float height = (valuesA.x + valuesA.y + valuesA.z + valuesA.w + valuesB.x + valuesB.y + valuesB.z + valuesB.w) * 65536;
 
   gl_Position = vec4(pos.x, pos.y, height);
+
+  _texCoord = position;
 }
