@@ -16,8 +16,6 @@ struct gpu_buffer
   uint32_t bufferId = 0; // this is actually a GLuint.
   
   size_t size; // in bytes
-
-  gpu_buffer_acces_type type;
-
+  gpu_buffer_acces_type accessType;
   bool uploaded = false;
 };

@@ -14,6 +14,7 @@ epilogue:
   return result;
 }
 
+// TODO: templated function to set data from any type.
 lsResult gpu_buffer_set(gpu_buffer *pBuffer, uint8_t *pData /*nullptr for only intializing*/, const uint32_t bindingPoint = 0)
 {
   lsResult result = lsR_Success;
@@ -47,6 +48,7 @@ epilogue:
   return result;
 }
 
+// TODO: templated function to get data from any type.
 lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize)
 {
   lsResult result = lsR_Success;
