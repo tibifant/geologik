@@ -2,6 +2,8 @@
 
 #include "core.h"
 
+//////////////////////////////////////////////////////////////////////////
+
 enum gpu_buffer_acces_type
 {
   gbat_dynamic, // GL_DYNAMIC_STORAGE_BIT
@@ -19,3 +21,19 @@ struct gpu_buffer
   gpu_buffer_acces_type accessType;
   bool uploaded = false;
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+lsResult gpu_buffer_create(gpu_buffer *pBuffer);
+
+template<typename T>
+lsResult gpu_buffer_set(gpu_buffer *pBuffer, T *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0);
+lsResult gpu_buffer_set(gpu_buffer *pBuffer, uint8_t *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0);
+
+template<typename T>
+lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ T **ppData, _Out_ size_t *pSize);
+lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize);
+
+lsResult gpu_buffer_bind(gpu_buffer *pBuffer);
+
+void gpu_buffer_detroy(gpu_buffer *pBuffer);

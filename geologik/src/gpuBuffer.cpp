@@ -2,6 +2,8 @@
 
 #include "GL/glew.h"
 
+//////////////////////////////////////////////////////////////////////////
+
 lsResult gpu_buffer_create(gpu_buffer *pBuffer)
 {
   lsResult result = lsR_Success;
@@ -15,10 +17,10 @@ epilogue:
 }
 
 template<typename T>
-lsResult gpu_buffer_set(gpu_buffer *pBuffer, T *pData /*nullptr for only intializing*/, const uint32_t bindingPoint = 0)
+lsResult gpu_buffer_set(gpu_buffer *pBuffer, T *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0)
 {
   lsResult result = lsR_Success;
-  
+
   LS_ERROR_IF(pBuffer == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(!pBuffer->bufferId, lsR_ResourceStateInvalid);
 
@@ -28,7 +30,7 @@ epilogue:
   return result;
 }
 
-lsResult gpu_buffer_set(gpu_buffer *pBuffer, uint8_t *pData /*nullptr for only intializing*/, const uint32_t bindingPoint = 0)
+lsResult gpu_buffer_set(gpu_buffer *pBuffer, uint8_t *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0)
 {
   lsResult result = lsR_Success;
 
@@ -61,7 +63,18 @@ epilogue:
   return result;
 }
 
-// TODO: templated function to get data from any type.
+template<typename T>
+lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ T **ppData, _Out_ size_t *pSize)
+{
+  lsResult result = lsR_Success;
+
+  LS_ERROR_IF(*ppData != nullptr, lsR_InvalidParameter);
+  LS_ERROR_CHECK(gpu_buffer_get_data(pBuffer, reinterpret_cast<uint8_t **>(ppData), pSize)); // is this valid?
+
+epilogue:
+  return result;
+}
+
 lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize)
 {
   lsResult result = lsR_Success;
@@ -84,18 +97,6 @@ lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ 
   lsMemcpy(*ppData, pGpuData, pBuffer->size); // Attention here is asked for the count not the size this only matches because we're uint8_t
 
   *pSize = pBuffer->size;
-
-epilogue:
-  return result;
-}
-
-template<typename T>
-lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ T **ppData, _Out_ size_t *pSize)
-{
-  lsResult result = lsR_Success;
-
-  LS_ERROR_IF(*ppData != nullptr, lsR_InvalidParameter);
-  LS_ERROR_CHECK(gpu_buffer_get_data(pBuffer, reinterpret_cast<uint8_t **>(ppData), pSize)); // is this valid?
 
 epilogue:
   return result;
