@@ -50,7 +50,7 @@ lsResult render_init(lsAppState *pAppState)
 
   // Create Plane.
   {
-    LS_ERROR_CHECK(shader_createFromFile(&_Render.plane.shader, "shaders/plane.vert", "shaders/plane.frag"));
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.plane.shader, "shaders/plane.vert", "shaders/plane.frag"));
 
     float_t renderData[] = { 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0 };
     LS_ERROR_CHECK(vertexBuffer_create(&_Render.plane.buffer, &_Render.plane.shader));
@@ -95,9 +95,9 @@ void render_startFrame(lsAppState *pAppState)
   render_clearColor(vec4f(0, 0, 0, 1));
   render_clearDepth();
 
-  framebuffer_setResolution(&_Render.screenQuad.framebuffer, _Render.windowSize);
-  framebuffer_setResolution(&_Render.screenQuad.tiny, _Render.windowSize / 16);
-  framebuffer_bind(&_Render.screenQuad.framebuffer);
+  //framebuffer_setResolution(&_Render.screenQuad.framebuffer, _Render.windowSize);
+  //framebuffer_setResolution(&_Render.screenQuad.tiny, _Render.windowSize / 16);
+  //framebuffer_bind(&_Render.screenQuad.framebuffer);
   
   render_clearColor(vec4f(0, 0, 0, 1));
   render_clearDepth();
