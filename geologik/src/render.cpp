@@ -4,6 +4,7 @@
 #include "pool.h"
 #include "texture.h"
 #include "vertexBuffer.h"
+#include "gpuBuffer.h"
 #include "framebuffer.h"
 #include "shader.h"
 #include "dataBlob.h"
@@ -28,6 +29,13 @@ static struct
     vertexBuffer<vb_attribute_float<2, _Attrib_Pos>> buffer;
   } plane;
 
+  struct
+  {
+    gpu_buffer gpuBuffer;
+    shader computeShader;
+    shader vertexFragmentShader;
+  } terrain;
+
   pool<texture> textures;
   vec3f lookAt, up, cameraDistance;
   matrix vp, vpFar;
@@ -47,6 +55,16 @@ lsResult render_init(lsAppState *pAppState)
   _Render.cameraDistance = vec3f(0, 0, 5.f);
   render_setLookAt(vec2f(0), vec2f(0, 1));
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
+
+  // Create Terrain 
+  {
+    // create buffer, shaders, transfer data to buffer?
+    LS_ERROR_CHECK(gpu_buffer_create(&_Render.gpuBuffer));
+    //LS_ERROR_CHECK(gpu_buffer_set(&_Render.gpuBuffer, )); // TODO!
+    
+
+    LS_ERROR_CHECK(shader_createFromFile_compute())
+  }
 
   // Create Plane.
   {

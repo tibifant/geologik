@@ -32,12 +32,12 @@ lsResult shader_createFromFile_vertex_fragment(shader *pShader, const char *vert
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pShader->type != st_vertex_fragment, lsR_InvalidParameter);
-
   char *vertexSource = nullptr;
   char *fragmentSource = nullptr;
 
   LS_ERROR_IF(pShader == nullptr || vertexPath == nullptr || fragmentPath == nullptr, lsR_ArgumentNull);
+
+  pShader->type = st_vertex_fragment;
 
   size_t bytes = 0; // unused.
   LS_ERROR_CHECK(lsReadFile(vertexPath, &vertexSource, &bytes));
@@ -61,11 +61,11 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pShader->type != st_compute, lsR_InvalidParameter);
-
   char *computeSource = nullptr;
 
   LS_ERROR_IF(pShader == nullptr || computePath == nullptr, lsR_ArgumentNull);
+  
+  pShader->type = st_compute;
 
   size_t bytes = 0; // unused.
   LS_ERROR_CHECK(lsReadFile(computePath, &computeSource, &bytes));
@@ -220,8 +220,6 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pShader->type != st_vertex_fragment, lsR_InvalidParameter);
-
   char *cleanVertexSource = nullptr;
   char *cleanFragmentSource = nullptr;
 
@@ -229,6 +227,8 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   GLuint fragmentShaderHandle = (GLuint)-1;
 
   LS_ERROR_IF(pShader == nullptr || vertexSource == nullptr || fragmentSource == nullptr, lsR_ArgumentNull);
+
+  pShader->type = st_vertex_fragment;
 
   LS_ERROR_CHECK(shader_allocCleanSource_internal(vertexSource, &cleanVertexSource));
   LS_ERROR_CHECK(shader_allocCleanSource_internal(fragmentSource, &cleanFragmentSource));
@@ -317,13 +317,13 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pShader->type != st_compute, lsR_InvalidParameter);
-
   char *cleanSource = nullptr;
 
   GLuint shaderHandle = (GLuint)-1;
 
   LS_ERROR_IF(pShader == nullptr || computeSource == nullptr, lsR_ArgumentNull);
+  
+  pShader->type = st_compute;
 
   LS_ERROR_CHECK(shader_allocCleanSource_internal(computeSource, &cleanSource));
 
