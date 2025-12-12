@@ -1,6 +1,6 @@
 #include "terrain.h"
 
-lsResult map_init(_Out_ terrain *pTerrain, const uint16_t width, const uint16_t height)
+lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width, const uint16_t height)
 {
   lsResult result = lsR_Success;
 
@@ -13,7 +13,7 @@ epilogue:
   return result;
 }
 
-void map_generate_terrain(terrain *pTerrain)
+void terrain_generate(terrain *pTerrain)
 {
   lsAssert(pTerrain != nullptr);
 

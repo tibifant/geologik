@@ -26,6 +26,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   (void)pArgs;
 
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
+  // TODO terrain init
 
   LS_ERROR_CHECK(render_init(&_AppState));
 
