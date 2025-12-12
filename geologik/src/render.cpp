@@ -23,18 +23,24 @@ extern const char _Attrib_Rot[] = "rotation";
 
 static struct
 {
+
+  struct
+  {
+    shader computeShader;
+    gpu_buffer gpuBuffer;
+  } erosion;
+
+  struct
+  {
+    shader vertexFragmentShader;
+    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // 128 * 128?
+  } terrain;
+
   struct
   {
     shader shader;
     vertexBuffer<vb_attribute_float<2, _Attrib_Pos>> buffer;
   } plane;
-
-  struct
-  {
-    gpu_buffer gpuBuffer;
-    shader computeShader;
-    shader vertexFragmentShader;
-  } terrain;
 
   pool<texture> textures;
   vec3f lookAt, up, cameraDistance;
@@ -56,14 +62,22 @@ lsResult render_init(lsAppState *pAppState)
   render_setLookAt(vec2f(0), vec2f(0, 1));
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
-  // Create Terrain 
+  // Create Erosion Buffer & Shader.
   {
-    // create buffer, shaders, transfer data to buffer?
-    LS_ERROR_CHECK(gpu_buffer_create(&_Render.gpuBuffer));
-    //LS_ERROR_CHECK(gpu_buffer_set(&_Render.gpuBuffer, )); // TODO!
+    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
+    //LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, )); // TODO!
     
+    //LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.computeShader, "shaders/erosion.comp"));
+  }
 
-    LS_ERROR_CHECK(shader_createFromFile_compute())
+  // Create Terrain.
+  {
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.vertexFragmentShader, "shaders/terrain.vert", "shaders/terrain.frag"));
+    
+    LS_ERROR_CHECK(vertexBuffer_create(&_Render.terrain.buffer, &_Render.terrain.vertexFragmentShader));
+
+    uint32_t renderData[] = { 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0 };
+    LS_ERROR_CHECK(vertexBuffer_setVertexBuffer(&_Render.terrain.buffer, renderData, LS_ARRAYSIZE(renderData)));
   }
 
   // Create Plane.
@@ -143,6 +157,13 @@ void render_destroy()
   
   pool_destroy(&_Render.textures);
 
+  vertexBuffer_destroy(&_Render.terrain.buffer);
+  shader_destroy(&_Render.terrain.vertexFragmentShader);
+
+  // todo: where to get data from buffer? here?
+  gpuBuffer_detroy(&_Render.erosion.gpuBuffer);
+  shader_destroy(&_Render.erosion.computeShader);
+
   vertexBuffer_destroy(&_Render.plane.buffer);
   shader_destroy(&_Render.plane.shader);
 }
@@ -194,9 +215,17 @@ void render_draw3DQuad(const matrix &model, const render_textureId textureIndex)
   render_drawQuad(model * _Render.vp, textureIndex);
 }
 
-void render_flushRenderQueue()
+void render_drawTerrain(const uint16_t width)
 {
+  shader_bind(&_Render.terrain.vertexFragmentShader);
 
+
+  // todo offset
+  shader_setUniform(&_Render.plane.shader, "offset", offset);
+
+  shader_setUniform(&_Render.plane.shader, "width", width);
+
+  vertexBuffer_render(&_Render.terrain.buffer);
 }
 
 //////////////////////////////////////////////////////////////////////////

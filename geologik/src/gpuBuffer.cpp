@@ -4,7 +4,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-lsResult gpu_buffer_create(gpu_buffer *pBuffer)
+lsResult gpuBuffer_create(gpu_buffer *pBuffer)
 {
   lsResult result = lsR_Success;
 
@@ -16,7 +16,7 @@ epilogue:
   return result;
 }
 
-lsResult gpu_buffer_set(gpu_buffer *pBuffer, const uint8_t *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0)
+lsResult gpuBuffer_set(gpu_buffer *pBuffer, const uint8_t *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0)
 {
   lsResult result = lsR_Success;
 
@@ -49,7 +49,7 @@ epilogue:
   return result;
 }
 
-lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize)
+lsResult gpuBuffer_get_data(const gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize)
 {
   lsResult result = lsR_Success;
 
@@ -63,12 +63,14 @@ lsResult gpu_buffer_get_data(gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ 
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-  const uint8_t *pGpuData = reinterpret_cast<uint8_t *>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->size, GL_MAP_READ_BIT));
-  
-  LS_ERROR_IF(pGpuData == nullptr, lsR_ArgumentNull);
+  {
+    const uint8_t *pGpuData = reinterpret_cast<uint8_t *>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->size, GL_MAP_READ_BIT));
 
-  LS_ERROR_CHECK(lsAlloc(ppData, pBuffer->size)); // Attention here is asked for the count not the size this only matches because we're uint8_t
-  lsMemcpy(*ppData, pGpuData, pBuffer->size); // Attention here is asked for the count not the size this only matches because we're uint8_t
+    LS_ERROR_IF(pGpuData == nullptr, lsR_ArgumentNull);
+
+    LS_ERROR_CHECK(lsAlloc(ppData, pBuffer->size)); // Attention here is asked for the count not the size this only matches because we're uint8_t
+    lsMemcpy(*ppData, pGpuData, pBuffer->size); // Attention here is asked for the count not the size this only matches because we're uint8_t
+  }
 
   *pSize = pBuffer->size;
 
@@ -78,7 +80,7 @@ epilogue:
 
 // TODO update data func for cases when buffer access type allows updating data
 
-lsResult gpu_buffer_bind(gpu_buffer *pBuffer)
+lsResult gpuBuffer_bind(const gpu_buffer *pBuffer)
 {
   lsResult result = lsR_Success;
 
@@ -92,7 +94,7 @@ epilogue:
   return result;
 }
 
-void gpu_buffer_detroy(gpu_buffer *pBuffer)
+void gpuBuffer_detroy(gpu_buffer *pBuffer)
 {
   lsResult result = lsR_Success;
 

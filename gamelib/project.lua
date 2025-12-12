@@ -7,7 +7,7 @@ project(ProjectName)
   flags { "FatalWarnings" }
   staticruntime "On"
 
-  cppdialect "C++17"
+  cppdialect "C++20"
 
   filter {"system:windows"}
     buildoptions { '/MP' }
