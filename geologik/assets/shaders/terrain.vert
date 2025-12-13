@@ -12,7 +12,6 @@ layout(binding = 0, std430) buffer data
   uint vals[];
 };
 
-
 void main ()
 {
   uvec2 pos = position + offset;

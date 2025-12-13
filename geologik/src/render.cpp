@@ -8,6 +8,7 @@
 #include "framebuffer.h"
 #include "shader.h"
 #include "dataBlob.h"
+#include "terrain.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +34,7 @@ static struct
   struct
   {
     shader vertexFragmentShader;
-    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // 128 * 128?
+    vertexBuffer<vb_attribute_vec2u32<1, _Attrib_Pos>> buffer; // 128 * 128?
   } terrain;
 
   struct
@@ -53,6 +54,34 @@ static struct
 
 //////////////////////////////////////////////////////////////////////////
 
+lsResult set_terrain_vertexData()
+{
+  lsResult result = lsR_Success;
+
+  const size_t quadCountX = 128;
+  const size_t quadCountY = 128;
+
+  vec2u32 quadData[] = { vec2u32(0, 0), vec2u32(0, 1), vec2u32(1, 0), vec2u32(0, 1), vec2u32(1, 1), vec2u32(1, 0), vec2u32(0, 0) };
+  const size_t quadDataSize = LS_ARRAYSIZE(quadData);
+  vec2u32 renderData[quadCountX * quadCountY * quadDataSize];
+
+  for (size_t y = 0; y < quadCountY; y++)
+  {
+    for (size_t x = 0; x < quadCountX; x++)
+    {
+      const size_t idx = (y * quadCountX + x) * quadDataSize;
+
+      for (size_t i = 0; i < quadDataSize; i++)
+        renderData[idx + i] = quadData[i] + vec2u32(x, y);
+    }
+  }
+
+  LS_ERROR_CHECK(vertexBuffer_setVertexBuffer(&_Render.terrain.buffer, renderData, LS_ARRAYSIZE(renderData)));
+
+epilogue:
+  return result;
+}
+
 lsResult render_init(lsAppState *pAppState)
 {
   lsResult result = lsR_Success;
@@ -64,9 +93,16 @@ lsResult render_init(lsAppState *pAppState)
 
   // Create Erosion Buffer & Shader.
   {
+    terrain t;
+
+    LS_ERROR_CHECK(terrain_init(&t, 1024, 1024));
+    terrain_generate(&t);
+
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
-    //LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, )); // TODO!
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles)); // TODO!
     
+    terrain_destroy(&t);
+
     //LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.computeShader, "shaders/erosion.comp"));
   }
 
@@ -75,9 +111,7 @@ lsResult render_init(lsAppState *pAppState)
     LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.vertexFragmentShader, "shaders/terrain.vert", "shaders/terrain.frag"));
     
     LS_ERROR_CHECK(vertexBuffer_create(&_Render.terrain.buffer, &_Render.terrain.vertexFragmentShader));
-
-    uint32_t renderData[] = { 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0 };
-    LS_ERROR_CHECK(vertexBuffer_setVertexBuffer(&_Render.terrain.buffer, renderData, LS_ARRAYSIZE(renderData)));
+    LS_ERROR_CHECK(set_terrain_vertexData());
   }
 
   // Create Plane.
@@ -215,12 +249,12 @@ void render_draw3DQuad(const matrix &model, const render_textureId textureIndex)
   render_drawQuad(model * _Render.vp, textureIndex);
 }
 
-void render_drawTerrain(const uint16_t width)
+void render_drawTerrain(const uint16_t width, const uint16_t height)
 {
   shader_bind(&_Render.terrain.vertexFragmentShader);
+  
+  for (size_t i = 0; i < width * height; i += 128)
 
-
-  // todo offset
   shader_setUniform(&_Render.plane.shader, "offset", offset);
 
   shader_setUniform(&_Render.plane.shader, "width", width);

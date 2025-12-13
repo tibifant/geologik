@@ -31,6 +31,17 @@ struct vb_attribute_uint : vb_attribute
   static GLenum getDataType() { return GL_UNSIGNED_INT; };
 };
 
+template <size_t TCount, const char *TAttributeName>
+struct vb_attribute_vec2u32 : vb_attribute
+{
+  static size_t getSingleSize() { return sizeof(vec2u32); };
+  static const char *getAttributeName() { return TAttributeName; };
+  static size_t getValuesPerBlock() { return TCount; };
+  static size_t getDataSize() { return sizeof(vec2u32) * TCount; };
+
+  static GLenum getDataType() { return GL_INT_VEC2; };
+};
+
 template <const char *TAttributeName>
 struct vb_attribute_mat4 : vb_attribute
 {

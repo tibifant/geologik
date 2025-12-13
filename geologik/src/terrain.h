@@ -33,3 +33,4 @@ struct terrain
 
 lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width, const uint16_t height);
 void terrain_generate(terrain *pTerrain);
+void terrain_destroy(terrain *pTerrain);

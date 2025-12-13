@@ -33,4 +33,12 @@ void terrain_generate(terrain *pTerrain)
   }
 }
 
+void terrain_destroy(terrain *pTerrain)
+{
+  if (pTerrain == nullptr)
+    return;
+
+  lsFreePtr(&pTerrain);
+}
+
 // TODO read/write data from/to file
