@@ -184,7 +184,6 @@ void render_destroy()
   vertexBuffer_destroy(&_Render.terrain.buffer);
   shader_destroy(&_Render.terrain.renderShader);
 
-  // todo: where to get data from buffer? here?
   gpuBuffer_detroy(&_Render.erosion.gpuBuffer);
   shader_destroy(&_Render.erosion.computeShader);
 

@@ -27,5 +27,5 @@ void main()
   //else if (valuesB.w) // bedrock
   //  color = vec4(0.1, 0.1, 0.1, 0);
 
-  color = vec4(vec2(_texCoord) * 0.01, _height * 0.001, 0);
+  color = vec4(0, 0, _height, 0); // vec2(_texCoord) * 0.01
 }
