@@ -27,11 +27,13 @@ struct vec
     y(0),
     z(0),
     w(1)
-  { }
+  {
+  }
 
   inline vec(const vec &a) :
     v(a.v)
-  { }
+  {
+  }
 
   inline explicit vec(const float_t s)
   {
@@ -59,11 +61,11 @@ struct vec
     v = DirectX::XMLoadFloat4(&f);
   }
 
-  inline vec(const vec2f &v) : vec(v.x, v.y) { }
-  inline vec(const vec3f &v) : vec(v.x, v.y, v.z) { }
-  inline vec(const vec4f &v) : vec(v.x, v.y, v.z, v.w) { }
+  inline vec(const vec2f &v) : vec(v.x, v.y) {}
+  inline vec(const vec3f &v) : vec(v.x, v.y, v.z) {}
+  inline vec(const vec4f &v) : vec(v.x, v.y, v.z, v.w) {}
 
-  inline vec(DirectX::XMVECTOR _v) : v(_v) { }
+  inline vec(DirectX::XMVECTOR _v) : v(_v) {}
 
   inline vec(DirectX::XMFLOAT2 _v) { v = DirectX::XMLoadFloat2(&_v); }
   inline vec(DirectX::XMFLOAT3 _v) { v = DirectX::XMLoadFloat3(&_v); }
@@ -277,7 +279,7 @@ struct quaternion
 #pragma warning(pop)
 
   inline quaternion() { *this = Identity(); }
-  inline explicit quaternion(DirectX::XMVECTOR v) : q(v) { }
+  inline explicit quaternion(DirectX::XMVECTOR v) : q(v) {}
 
   inline quaternion Multiply(const quaternion &q2) const { return quaternion(DirectX::XMQuaternionMultiply(q, q2.q)); }
 
@@ -303,7 +305,7 @@ struct quaternion
 
   inline static quaternion Identity() { return quaternion(DirectX::XMQuaternionIdentity()); }
 
-  static quaternion __vectorcall quaternion::FromRotationMatrix(const matrix &m);
+  static quaternion __vectorcall FromRotationMatrix(const matrix &m);
 
   inline static quaternion __vectorcall FromRotationAxis(const vec axis, const float_t angle) { return quaternion(DirectX::XMQuaternionRotationAxis(axis.v, angle)); }
   inline static quaternion __vectorcall FromRotationNormal(const vec normalAxis, const float_t angle) { return quaternion(DirectX::XMQuaternionRotationNormal(normalAxis.v, angle)); }
@@ -345,7 +347,7 @@ struct matrix
 
 
   inline matrix() { m = DirectX::XMMatrixIdentity(); }
-  inline matrix(DirectX::XMMATRIX _m) : m(_m) { }
+  inline matrix(DirectX::XMMATRIX _m) : m(_m) {}
 
   inline matrix operator*(const matrix &q1) const { return Multiply(q1); }
   inline matrix &operator*=(const matrix &q1) { return *this = Multiply(q1); }

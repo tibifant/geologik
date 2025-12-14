@@ -21,11 +21,12 @@ struct shader
   
   enum shader_type type;
 
-//#ifdef _DEBUG
-//  // if loaded from file:
-//  const char *vertexPath = nullptr;
-//  const char *fragmentPath = nullptr;
-//#endif
+#ifdef _DEBUG
+  // if loaded from file:
+  const char *vertexPath = nullptr;
+  const char *fragmentPath = nullptr;
+  const char *computePath = nullptr;
+#endif
 
   shader_name_ref *pUniformReferences = nullptr;
   size_t uniformReferenceCount = 0;
@@ -60,8 +61,10 @@ void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const uint3
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const float_t v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec2f &v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec2i32 &v);
+void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec2u32 &v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec3f &v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec3i32 &v);
+void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec3u32 &v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec4f &v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec4i32 &v);
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec &v);

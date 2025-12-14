@@ -53,14 +53,16 @@ lsResult texture_set(texture *pTexture, const char *filename)
 
   LS_ERROR_IF(pTexture == nullptr || filename == nullptr, lsR_ArgumentNull);
 
-  size_t fileBytes = 0;
-  LS_ERROR_CHECK(lsReadFile(filename, &pFile, &fileBytes));
+  {
+    size_t fileBytes = 0;
+    LS_ERROR_CHECK(lsReadFile(filename, &pFile, &fileBytes));
 
-  int32_t x, y, originalChannelCount;
-  pImage = stbi_load_from_memory(pFile, (int32_t)fileBytes, &x, &y, &originalChannelCount, 4);
+    int32_t x, y, originalChannelCount;
+    pImage = stbi_load_from_memory(pFile, (int32_t)fileBytes, &x, &y, &originalChannelCount, 4);
 
-  LS_ERROR_IF(pImage == nullptr, lsR_InternalError);
-  LS_ERROR_CHECK(texture_set(pTexture, pImage, vec2s(x, y)));
+    LS_ERROR_IF(pImage == nullptr, lsR_InternalError);
+    LS_ERROR_CHECK(texture_set(pTexture, pImage, vec2s(x, y)));
+  }
 
 epilogue:
   if (pFile != nullptr)
@@ -72,7 +74,7 @@ epilogue:
   return result;
 }
 
-lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolution)
+lsResult texture_set_raw(texture *pTexture, const void *pData, texture_format_type textureFormatType, const vec2s resolution)
 {
   lsResult result = lsR_Success;
 
@@ -81,17 +83,17 @@ lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolu
 
   glBindTexture(GL_TEXTURE_2D, pTexture->textureId);
 
-  switch (pTexture->textureFormatType)
+  switch (pTexture->textureFormatType = textureFormatType)
   {
-  case tft_unsigned_byte:
+  case tft_u8:
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
     break;
 
-  case tft_unsigned_short:
+  case tft_u16:
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, pData);
     break;
 
-  deafult:
+  default:
     lsAssert(false); // not implemented.
     break;
   }
@@ -101,6 +103,16 @@ lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolu
 
 epilogue:
   return result;
+}
+
+lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolution)
+{
+  return texture_set_raw(pTexture, pData, tft_u8, resolution);
+}
+
+lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resolution)
+{
+  return texture_set_raw(pTexture, pData, tft_u16, resolution);
 }
 
 lsResult texture_bind(texture *pTexture, const uint32_t textureUnit)

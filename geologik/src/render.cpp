@@ -33,8 +33,8 @@ static struct
 
   struct
   {
-    shader vertexFragmentShader;
-    vertexBuffer<vb_attribute_vec2u32<1, _Attrib_Pos>> buffer; // 128 * 128?
+    shader renderShader;
+    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // 128 * 128?
   } terrain;
 
   struct
@@ -45,7 +45,7 @@ static struct
 
   pool<texture> textures;
   vec3f lookAt, up, cameraDistance;
-  matrix vp, vpFar;
+  matrix vp;
   vec2s windowSize;
   float_t frameRatio;
   int64_t lastFrameStartNs;
@@ -54,20 +54,20 @@ static struct
 
 //////////////////////////////////////////////////////////////////////////
 
+constexpr size_t quadCountX = 128;
+constexpr size_t quadCountY = 128;
+
 lsResult set_terrain_vertexData()
 {
   lsResult result = lsR_Success;
-
-  const size_t quadCountX = 128;
-  const size_t quadCountY = 128;
 
   vec2u32 quadData[] = { vec2u32(0, 0), vec2u32(0, 1), vec2u32(1, 0), vec2u32(0, 1), vec2u32(1, 1), vec2u32(1, 0), vec2u32(0, 0) };
   const size_t quadDataSize = LS_ARRAYSIZE(quadData);
   vec2u32 renderData[quadCountX * quadCountY * quadDataSize];
 
-  for (size_t y = 0; y < quadCountY; y++)
+  for (uint32_t y = 0; y < quadCountY; y++)
   {
-    for (size_t x = 0; x < quadCountX; x++)
+    for (uint32_t x = 0; x < quadCountX; x++)
     {
       const size_t idx = (y * quadCountX + x) * quadDataSize;
 
@@ -87,8 +87,7 @@ lsResult render_init(lsAppState *pAppState)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  _Render.cameraDistance = vec3f(0, 0, 5.f);
-  render_setLookAt(vec2f(0), vec2f(0, 1));
+  render_setLookAt(vec3f(64, 64, 0), vec3f(-64, -64, 1024), vec3f(0, 0, 1));
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   // Create Erosion Buffer & Shader.
@@ -99,8 +98,8 @@ lsResult render_init(lsAppState *pAppState)
     terrain_generate(&t);
 
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
-    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles)); // TODO!
-    
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.height)); // TODO!
+
     terrain_destroy(&t);
 
     //LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.computeShader, "shaders/erosion.comp"));
@@ -108,9 +107,9 @@ lsResult render_init(lsAppState *pAppState)
 
   // Create Terrain.
   {
-    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.vertexFragmentShader, "shaders/terrain.vert", "shaders/terrain.frag"));
-    
-    LS_ERROR_CHECK(vertexBuffer_create(&_Render.terrain.buffer, &_Render.terrain.vertexFragmentShader));
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.renderShader, "shaders/terrain.vert", "shaders/terrain.frag"));
+
+    LS_ERROR_CHECK(vertexBuffer_create(&_Render.terrain.buffer, &_Render.terrain.renderShader));
     LS_ERROR_CHECK(set_terrain_vertexData());
   }
 
@@ -161,26 +160,17 @@ void render_startFrame(lsAppState *pAppState)
   render_clearColor(vec4f(0, 0, 0, 1));
   render_clearDepth();
 
-  //framebuffer_setResolution(&_Render.screenQuad.framebuffer, _Render.windowSize);
-  //framebuffer_setResolution(&_Render.screenQuad.tiny, _Render.windowSize / 16);
-  //framebuffer_bind(&_Render.screenQuad.framebuffer);
-  
-  render_clearColor(vec4f(0, 0, 0, 1));
-  render_clearDepth();
-  
   render_setDepthMode(rCR_Less);
   render_setBlendEnabled(false);
-  render_setDepthTestEnabled(false);
-
-  render_setLookAt(_Render.lookAt, _Render.up);
+  render_setDepthTestEnabled(true);
 }
 
 void render_endFrame(lsAppState *pAppState)
 {
   (void)pAppState;
-  
+
   framebuffer_unbind();
-  
+
   render_setDepthTestEnabled(false);
 }
 
@@ -188,11 +178,11 @@ void render_destroy()
 {
   for (auto _item : _Render.textures)
     texture_destroy(_item.pItem);
-  
+
   pool_destroy(&_Render.textures);
 
   vertexBuffer_destroy(&_Render.terrain.buffer);
-  shader_destroy(&_Render.terrain.vertexFragmentShader);
+  shader_destroy(&_Render.terrain.renderShader);
 
   // todo: where to get data from buffer? here?
   gpuBuffer_detroy(&_Render.erosion.gpuBuffer);
@@ -202,26 +192,13 @@ void render_destroy()
   shader_destroy(&_Render.plane.shader);
 }
 
-void render_setCameraOffset(const vec3f offset)
-{
-  _Render.cameraDistance = offset;
-  render_setLookAt(_Render.lookAt, _Render.up);
-}
-
-void render_setLookAt(const vec2f position, const vec2f up)
-{
-  render_setLookAt(vec3f(position, 0), vec3f(up, 0));
-}
-
-void render_setLookAt(const vec3f position, const vec3f up)
+void render_setLookAt(const vec3f position, const vec3f from, const vec3f up)
 {
   _Render.lookAt = position;
   _Render.up = up.Normalize();
-  
-  const matrix v = matrix::LookAtLH(vec(_Render.lookAt - _Render.cameraDistance), vec(_Render.lookAt), vec(_Render.up));
 
-  _Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf, vec2f(_Render.windowSize).AspectRatio(), 1, 50);
-  _Render.vpFar = v * matrix::PerspectiveFovLH(lsHALFPIf, vec2f(_Render.windowSize).AspectRatio(), 10, 1000);
+  const matrix v = matrix::LookAtLH(vec(from), vec(_Render.lookAt), vec(_Render.up));
+  _Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf, vec2f(_Render.windowSize).AspectRatio(), 1, 50000);
 }
 
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin)
@@ -249,17 +226,20 @@ void render_draw3DQuad(const matrix &model, const render_textureId textureIndex)
   render_drawQuad(model * _Render.vp, textureIndex);
 }
 
-void render_drawTerrain(const uint16_t width, const uint16_t height)
+void render_drawTerrain(const uint32_t width, const uint32_t height)
 {
-  shader_bind(&_Render.terrain.vertexFragmentShader);
-  
-  for (size_t i = 0; i < width * height; i += 128)
+  shader_bind(&_Render.terrain.renderShader);
+  shader_setUniform(&_Render.terrain.renderShader, "width", width);
+  shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
 
-  shader_setUniform(&_Render.plane.shader, "offset", offset);
-
-  shader_setUniform(&_Render.plane.shader, "width", width);
-
-  vertexBuffer_render(&_Render.terrain.buffer);
+  for (uint32_t y = 0; y < height; y += quadCountX)
+  {
+    for (uint32_t x = 0; x < width; x += quadCountY)
+    {
+      shader_setUniform(&_Render.terrain.renderShader, "offset", vec2u32(x, y));
+      vertexBuffer_render(&_Render.terrain.buffer);
+    }
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////

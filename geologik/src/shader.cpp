@@ -18,17 +18,17 @@ lsResult shader_allocCleanSource_internal(_In_ const char *source, _Out_ char **
 
 //////////////////////////////////////////////////////////////////////////
 
-lsResult shader_create_vertex_fragment(shader *pShader, const char *vertexSource, const char *fragmentSource)
+lsResult shader_create_vertex_fragment(_Out_ shader *pShader, const char *vertexSource, const char *fragmentSource)
 {
   return shader_create_vertex_fragment_internal(pShader, vertexSource, fragmentSource, true);
 }
 
-lsResult shader_create_compute(shader *pShader, const char *computeSource)
+lsResult shader_create_compute(_Out_ shader *pShader, const char *computeSource)
 {
   return shader_create_compute_internal(pShader, computeSource, true); // true? do we even need this i don't understand
 }
 
-lsResult shader_createFromFile_vertex_fragment(shader *pShader, const char *vertexPath, const char *fragmentPath)
+lsResult shader_createFromFile_vertex_fragment(_Out_ shader *pShader, const char *vertexPath, const char *fragmentPath)
 {
   lsResult result = lsR_Success;
 
@@ -38,17 +38,18 @@ lsResult shader_createFromFile_vertex_fragment(shader *pShader, const char *vert
   LS_ERROR_IF(pShader == nullptr || vertexPath == nullptr || fragmentPath == nullptr, lsR_ArgumentNull);
 
   pShader->type = st_vertex_fragment;
-
-  size_t bytes = 0; // unused.
-  LS_ERROR_CHECK(lsReadFile(vertexPath, &vertexSource, &bytes));
-  LS_ERROR_CHECK(lsReadFile(fragmentPath, &fragmentSource, &bytes));
+  {
+    size_t bytes = 0; // unused.
+    LS_ERROR_CHECK(lsReadFile(vertexPath, &vertexSource, &bytes));
+    LS_ERROR_CHECK(lsReadFile(fragmentPath, &fragmentSource, &bytes));
+  }
 
   LS_ERROR_CHECK(shader_create_vertex_fragment(pShader, vertexSource, fragmentSource));
 
-//#ifdef _DEBUG
-//  pShader->vertexPath = _strdup(vertexPath);
-//  pShader->fragmentPath = _strdup(fragmentPath);
-//#endif
+  #ifdef _DEBUG
+    pShader->vertexPath = _strdup(vertexPath);
+    pShader->fragmentPath = _strdup(fragmentPath);
+  #endif
 
 epilogue:
   lsFreePtr(&vertexSource);
@@ -64,13 +65,19 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
   char *computeSource = nullptr;
 
   LS_ERROR_IF(pShader == nullptr || computePath == nullptr, lsR_ArgumentNull);
-  
+
   pShader->type = st_compute;
 
-  size_t bytes = 0; // unused.
-  LS_ERROR_CHECK(lsReadFile(computePath, &computeSource, &bytes));
+  {
+    size_t bytes = 0; // unused.
+    LS_ERROR_CHECK(lsReadFile(computePath, &computeSource, &bytes));
+  }
 
   LS_ERROR_CHECK(shader_create_compute(pShader, computeSource));
+
+#ifdef _DEBUG
+  pShader->computePath = _strdup(computePath);
+#endif
 
 epilogue:
   lsFreePtr(&computeSource);
@@ -89,31 +96,55 @@ void shader_bind(shader *pShader)
   shader_currentlyBoundIndex = pShader->shaderProgram;
 }
 
-//#ifdef _DEBUG
-//lsResult shader_reload(shader *pShader)
-//{
-//  lsResult result = lsR_Success;
-//
-//  char *vertexSource = nullptr;
-//  char *fragmentSource = nullptr;
-//
-//  LS_ERROR_IF(pShader == nullptr, lsR_ArgumentNull);
-//  LS_ERROR_IF(!pShader->initialized, lsR_ResourceStateInvalid);
-//  LS_ERROR_IF(pShader->fragmentPath == nullptr || pShader->vertexPath == nullptr, lsR_ResourceStateInvalid);
-//
-//  size_t bytes = 0; // unused.
-//  LS_ERROR_CHECK(lsReadFile(pShader->vertexPath, &vertexSource, &bytes));
-//  LS_ERROR_CHECK(lsReadFile(pShader->fragmentPath, &fragmentSource, &bytes));
-//
-//  LS_ERROR_CHECK(shader_create_vertex_fragment(pShader, vertexSource, fragmentSource));
-//
-//epilogue:
-//  lsFreePtr(&vertexSource);
-//  lsFreePtr(&fragmentSource);
-//
-//  return result;
-//}
-//#endif
+#ifdef _DEBUG
+lsResult shader_reload_vertex_fragment(shader *pShader)
+{
+  lsResult result = lsR_Success;
+
+  char *vertexSource = nullptr;
+  char *fragmentSource = nullptr;
+
+  LS_ERROR_IF(pShader == nullptr, lsR_ArgumentNull);
+  LS_ERROR_IF(!pShader->initialized, lsR_ResourceStateInvalid);
+  LS_ERROR_IF(pShader->fragmentPath == nullptr || pShader->vertexPath == nullptr, lsR_ResourceStateInvalid);
+
+  {
+    size_t bytes = 0; // unused.
+    LS_ERROR_CHECK(lsReadFile(pShader->vertexPath, &vertexSource, &bytes));
+    LS_ERROR_CHECK(lsReadFile(pShader->fragmentPath, &fragmentSource, &bytes));
+
+    LS_ERROR_CHECK(shader_create_vertex_fragment(pShader, vertexSource, fragmentSource));
+  }
+
+epilogue:
+  lsFreePtr(&vertexSource);
+  lsFreePtr(&fragmentSource);
+
+  return result;
+}
+
+lsResult shader_reload_compute(shader *pShader)
+{
+  lsResult result = lsR_Success;
+
+  char *computeSource = nullptr;
+
+  LS_ERROR_IF(pShader == nullptr, lsR_ArgumentNull);
+  LS_ERROR_IF(!pShader->initialized, lsR_ResourceStateInvalid);
+  LS_ERROR_IF(pShader->computePath == nullptr, lsR_ResourceStateInvalid);
+
+  {
+    size_t bytes = 0; // unused.
+    LS_ERROR_CHECK(lsReadFile(pShader->computePath, &computeSource, &bytes));
+    LS_ERROR_CHECK(shader_create_compute(pShader, computeSource));
+  }
+
+epilogue:
+  lsFreePtr(&computeSource);
+
+  return result;
+}
+#endif
 
 void shader_destroy(shader *pShader)
 {
@@ -126,10 +157,17 @@ void shader_destroy(shader *pShader)
     pShader->shaderProgram = 0;
   }
 
-//#ifdef _DEBUG
-//  lsFreePtr(&pShader->vertexPath);
-//  lsFreePtr(&pShader->fragmentPath);
-//#endif
+  #ifdef _DEBUG
+  if (pShader->type == st_vertex_fragment)
+  {
+    lsFreePtr(&pShader->vertexPath);
+    lsFreePtr(&pShader->fragmentPath);
+  }
+  else
+  {
+    lsFreePtr(&pShader->computePath);
+  }
+  #endif
 
   lsFreePtr(&pShader->pUniformReferences);
   lsFreePtr(&pShader->pAttributeReferences);
@@ -144,7 +182,7 @@ uint32_t shader_getUniformIndex(shader *pShader, const char *uniformName)
       return pShader->pUniformReferences[i].index;
 
   shader_name_ref ref;
-  ref.index= glGetUniformLocation(pShader->shaderProgram, uniformName);
+  ref.index = glGetUniformLocation(pShader->shaderProgram, uniformName);
   lsAssert(ref.index != (uint32_t)-1);
 
   const size_t length = strlen(uniformName);
@@ -172,9 +210,9 @@ uint32_t shader_getAttributeIndex(shader *pShader, const char *attributeName)
   shader_name_ref ref;
   ref.index = glGetAttribLocation(pShader->shaderProgram, attributeName);
   lsAssert(ref.index != (uint32_t)-1);
-  
+
   const size_t length = strlen(attributeName);
-  
+
   if (length >= LS_ARRAYSIZE_C_STYLE(shader_name_ref::name))
     return ref.index;
 
@@ -196,8 +234,10 @@ void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const uint3
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const float_t v) { shader_bind(pShader); glUniform1f(index, v); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec2f &v) { shader_bind(pShader); glUniform2f(index, v.x, v.y); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec2i32 &v) { shader_bind(pShader); glUniform2i(index, v.x, v.y); }
+void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec2u32 &v) { shader_bind(pShader); glUniform2ui(index, v.x, v.y); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec3f &v) { shader_bind(pShader); glUniform3f(index, v.x, v.y, v.z); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec3i32 &v) { shader_bind(pShader); glUniform3i(index, v.x, v.y, v.z); }
+void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec3u32 &v) { shader_bind(pShader); glUniform3ui(index, v.x, v.y, v.z); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec4f &v) { shader_bind(pShader); glUniform4f(index, v.x, v.y, v.z, v.w); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec4i32 &v) { shader_bind(pShader); glUniform4i(index, v.x, v.y, v.z, v.w); }
 void shader_setUniformAtIndex(shader *pShader, const uint32_t index, const vec &v) { shader_bind(pShader); glUniform4f(index, v.x, v.y, v.z, v.w); }
@@ -265,7 +305,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     puts("Error compiling fragment shader.\nThe following error occured:");
     puts(buffer);
-    
+
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
 
@@ -297,7 +337,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 epilogue:
   lsFreePtr(&cleanVertexSource);
   lsFreePtr(&cleanFragmentSource);
-  
+
   if (vertexShaderHandle != (GLuint)-1)
     glDeleteShader(vertexShaderHandle);
 
@@ -322,7 +362,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   GLuint shaderHandle = (GLuint)-1;
 
   LS_ERROR_IF(pShader == nullptr || computeSource == nullptr, lsR_ArgumentNull);
-  
+
   pShader->type = st_compute;
 
   LS_ERROR_CHECK(shader_allocCleanSource_internal(computeSource, &cleanSource));
@@ -351,7 +391,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
     glUseProgram(pShader->shaderProgram);
 
   glAttachShader(pShader->shaderProgram, shaderHandle);
-  
+
   glLinkProgram(pShader->shaderProgram);
 
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
@@ -393,14 +433,16 @@ lsResult shader_allocCleanSource_internal(_In_ const char *source, _Out_ char **
 
   LS_ERROR_CHECK(lsAlloc(&cleanSource, length));
 
-  char *write = cleanSource;
-
-  for (size_t i = 0; i < length; i++)
   {
-    if (source[i] != '\r')
+    char *write = cleanSource;
+
+    for (size_t i = 0; i < length; i++)
     {
-      *write = source[i];
-      write++;
+      if (source[i] != '\r')
+      {
+        *write = source[i];
+        write++;
+      }
     }
   }
 

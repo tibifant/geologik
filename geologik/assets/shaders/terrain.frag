@@ -2,7 +2,8 @@
 
 out vec4 color;
 
-in ivec2 _texCoord;
+in flat uvec2 _texCoord;
+in float _height;
 
 void main()
 {
@@ -26,5 +27,5 @@ void main()
   //else if (valuesB.w) // bedrock
   //  color = vec4(0.1, 0.1, 0.1, 0);
 
-  color = vec4(0, 0.7, 0, 0);
+  color = vec4(vec2(_texCoord) * 0.01, _height * 0.001, 0);
 }

@@ -12,14 +12,13 @@ void render_startFrame(lsAppState *pAppState);
 void render_endFrame(lsAppState *pAppState);
 void render_destroy();
 
-void render_setCameraOffset(const vec3f offset);
-void render_setLookAt(const vec2f position, const vec2f up);
-void render_setLookAt(const vec3f position, const vec3f up);
+void render_setLookAt(const vec3f position, const vec3f from, const vec3f up);
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
 
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw2DQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw3DQuad(const matrix &model, const render_textureId textureIndex);
+void render_drawTerrain(const uint32_t width, const uint32_t height);
 
 void render_flushRenderQueue();
 

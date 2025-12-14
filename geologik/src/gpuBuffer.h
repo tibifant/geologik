@@ -16,7 +16,7 @@ enum gpu_buffer_acces_type
 struct gpu_buffer
 {
   uint32_t bufferId = 0; // this is actually a GLuint.
-  
+
   size_t size; // in bytes
   gpu_buffer_acces_type accessType;
   bool uploaded = false;
@@ -28,15 +28,18 @@ lsResult gpuBuffer_create(gpu_buffer *pBuffer);
 lsResult gpuBuffer_bind(const gpu_buffer *pBuffer);
 void gpuBuffer_detroy(gpu_buffer *pBuffer);
 
+lsResult gpuBuffer_set(gpu_buffer *pBuffer, const uint8_t *pData /*nullptr valid for intialization*/, const size_t size, const uint32_t bindingPoint = 0);
+lsResult gpuBuffer_get_data(const gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize);
+
 template<typename T>
-lsResult gpuBuffer_set(gpu_buffer *pBuffer, const T *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0)
+lsResult gpuBuffer_set(gpu_buffer *pBuffer, const T *pData /*nullptr valid for intialization*/, const size_t count, const uint32_t bindingPoint = 0)
 {
   lsResult result = lsR_Success;
 
   LS_ERROR_IF(pBuffer == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(!pBuffer->bufferId, lsR_ResourceStateInvalid);
 
-  LS_ERROR_CHECK(gpuBuffer_set(pBuffer, reinterpret_cast<const uint8_t *>(pData), bindingPoint)); // is this valid like this?
+  LS_ERROR_CHECK(gpuBuffer_set(pBuffer, reinterpret_cast<const uint8_t *>(pData), count * sizeof(T), bindingPoint)); // is this valid like this?
 
 epilogue:
   return result;

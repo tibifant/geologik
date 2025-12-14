@@ -9,40 +9,26 @@ lsResult framebuffer_create(framebuffer *pFramebuffer, const vec2s size, const s
   LS_ERROR_IF(pFramebuffer == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(size.x > UINT32_MAX || size.y > UINT32_MAX, lsR_ArgumentOutOfBounds);
 
-  pFramebuffer->size = size;
-  pFramebuffer->textureUnit = (uint32_t)-1;
-  pFramebuffer->textureUnitDepthStencil = (uint32_t)-1;
-  pFramebuffer->sampleCount = sampleCount;
-  pFramebuffer->hasDepthStencil = hasDepthStencil;
-
-  GLenum glPixelFormat = GL_RGBA;
-  GLenum glType = GL_UNSIGNED_BYTE;
-
-  glGenFramebuffers(1, &pFramebuffer->frameBufferHandle);
-  glBindFramebuffer(GL_FRAMEBUFFER, pFramebuffer->frameBufferHandle);
-
-  glGenTextures(1, &pFramebuffer->textureId);
-  glBindTexture((pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->textureId);
-
-  if (pFramebuffer->sampleCount > 0)
-    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, (GLsizei)pFramebuffer->sampleCount, glPixelFormat, (GLsizei)size.x, (GLsizei)size.y, true);
-  else
-    glTexImage2D(GL_TEXTURE_2D, 0, glPixelFormat, (GLsizei)size.x, (GLsizei)size.y, 0, glPixelFormat, glType, nullptr);
-
-  if (pFramebuffer->sampleCount == 0)
   {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  }
+    pFramebuffer->size = size;
+    pFramebuffer->textureUnit = (uint32_t)-1;
+    pFramebuffer->textureUnitDepthStencil = (uint32_t)-1;
+    pFramebuffer->sampleCount = sampleCount;
+    pFramebuffer->hasDepthStencil = hasDepthStencil;
 
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, (pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->textureId, 0);
+    GLenum glPixelFormat = GL_RGBA;
+    GLenum glType = GL_UNSIGNED_BYTE;
 
-  if (pFramebuffer->hasDepthStencil)
-  {
-    glGenTextures(1, &pFramebuffer->depthStencilTextureId);
-    glBindTexture((pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->depthStencilTextureId);
+    glGenFramebuffers(1, &pFramebuffer->frameBufferHandle);
+    glBindFramebuffer(GL_FRAMEBUFFER, pFramebuffer->frameBufferHandle);
+
+    glGenTextures(1, &pFramebuffer->textureId);
+    glBindTexture((pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->textureId);
+
+    if (pFramebuffer->sampleCount > 0)
+      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, (GLsizei)pFramebuffer->sampleCount, glPixelFormat, (GLsizei)size.x, (GLsizei)size.y, true);
+    else
+      glTexImage2D(GL_TEXTURE_2D, 0, glPixelFormat, (GLsizei)size.x, (GLsizei)size.y, 0, glPixelFormat, glType, nullptr);
 
     if (pFramebuffer->sampleCount == 0)
     {
@@ -52,18 +38,34 @@ lsResult framebuffer_create(framebuffer *pFramebuffer, const vec2s size, const s
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
 
-    if (pFramebuffer->sampleCount > 0)
-      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, (GLsizei)pFramebuffer->sampleCount, GL_DEPTH24_STENCIL8, (GLsizei)size.x, (GLsizei)size.y, true);
-    else
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, (GLsizei)size.x, (GLsizei)size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_BYTE, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, (pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->textureId, 0);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, (pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->depthStencilTextureId, 0);
+    if (pFramebuffer->hasDepthStencil)
+    {
+      glGenTextures(1, &pFramebuffer->depthStencilTextureId);
+      glBindTexture((pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->depthStencilTextureId);
+
+      if (pFramebuffer->sampleCount == 0)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      }
+
+      if (pFramebuffer->sampleCount > 0)
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, (GLsizei)pFramebuffer->sampleCount, GL_DEPTH24_STENCIL8, (GLsizei)size.x, (GLsizei)size.y, true);
+      else
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, (GLsizei)size.x, (GLsizei)size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_BYTE, nullptr);
+
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, (pFramebuffer->sampleCount > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, pFramebuffer->depthStencilTextureId, 0);
+    }
+
+    const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    LS_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, lsR_InternalError);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
-
-  const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-  LS_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, lsR_InternalError);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 epilogue:
   return result;

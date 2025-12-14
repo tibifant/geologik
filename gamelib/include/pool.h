@@ -70,46 +70,48 @@ lsResult pool_add(pool<T> *pPool, const T *pItem, _Out_ size_t *pIndex)
 
   LS_ERROR_IF(pPool == nullptr || pItem == nullptr || pIndex == nullptr, lsR_ArgumentNull);
 
-  bool found = false;
-  size_t blockIndex = 0, blockSubIndex = 0;
-
-  // Try to find an empty spot.
-  for (size_t i = 0; i < pPool->blockCount; i++)
   {
-    if (pPool->pBlockEmptyMask[i] != (uint64_t)-1)
+    bool found = false;
+    size_t blockIndex = 0, blockSubIndex = 0;
+
+    // Try to find an empty spot.
+    for (size_t i = 0; i < pPool->blockCount; i++)
     {
-      unsigned long subIndex = 0;
-      lsAssert(0 != _BitScanForward64(&subIndex, ~pPool->pBlockEmptyMask[i]));
-      lsAssert(((pPool->pBlockEmptyMask[i] >> subIndex) & 1) == 0);
+      if (pPool->pBlockEmptyMask[i] != (uint64_t)-1)
+      {
+        unsigned long subIndex = 0;
+        lsAssert(0 != _BitScanForward64(&subIndex, ~pPool->pBlockEmptyMask[i]));
+        lsAssert(((pPool->pBlockEmptyMask[i] >> subIndex) & 1) == 0);
 
-      blockIndex = i;
-      blockSubIndex = subIndex;
-      found = true;
+        blockIndex = i;
+        blockSubIndex = subIndex;
+        found = true;
 
-      break;
+        break;
+      }
     }
+
+    // Spot found? No? Then allocate a new block!
+    if (!found)
+    {
+      size_t newBlockCount = pPool->blockCount + 1;
+
+      blockIndex = pPool->blockCount;
+      blockSubIndex = 0;
+
+      LS_ERROR_CHECK(lsRealloc(&pPool->pBlockEmptyMask, newBlockCount));
+      LS_ERROR_CHECK(lsRealloc(&pPool->ppBlocks, newBlockCount));
+      LS_ERROR_CHECK(lsAllocZero(&pPool->ppBlocks[blockIndex], pool<T>::BlockSize));
+
+      pPool->pBlockEmptyMask[blockIndex] = 0;
+      pPool->blockCount = newBlockCount;
+    }
+
+    pPool->ppBlocks[blockIndex][blockSubIndex] = *pItem;
+    pPool->pBlockEmptyMask[blockIndex] |= ((uint64_t)1 << blockSubIndex);
+    *pIndex = blockIndex * pool<T>::BlockSize + blockSubIndex;
+    pPool->count++;
   }
-
-  // Spot found? No? Then allocate a new block!
-  if (!found)
-  {
-    size_t newBlockCount = pPool->blockCount + 1;
-
-    blockIndex = pPool->blockCount;
-    blockSubIndex = 0;
-
-    LS_ERROR_CHECK(lsRealloc(&pPool->pBlockEmptyMask, newBlockCount));
-    LS_ERROR_CHECK(lsRealloc(&pPool->ppBlocks, newBlockCount));
-    LS_ERROR_CHECK(lsAllocZero(&pPool->ppBlocks[blockIndex], pool<T>::BlockSize));
-
-    pPool->pBlockEmptyMask[blockIndex] = 0;
-    pPool->blockCount = newBlockCount;
-  }
-
-  pPool->ppBlocks[blockIndex][blockSubIndex] = *pItem;
-  pPool->pBlockEmptyMask[blockIndex] |= ((uint64_t)1 << blockSubIndex);
-  *pIndex = blockIndex * pool<T>::BlockSize + blockSubIndex;
-  pPool->count++;
 
 epilogue:
   return result;
@@ -353,7 +355,7 @@ inline const typename pool_iterator<T>::pool_item pool_iterator<T>::operator*() 
   ret.index = blockIndex * pool<T>::BlockSize + blockSubIndex;
   ret.pItem = &pPool->ppBlocks[blockIndex][blockSubIndex];
   ret._iteratedIndex = iteratedItem;
-  d
+  
   return ret;
 }
 

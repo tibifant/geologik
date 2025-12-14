@@ -31,17 +31,6 @@ struct vb_attribute_uint : vb_attribute
   static GLenum getDataType() { return GL_UNSIGNED_INT; };
 };
 
-template <size_t TCount, const char *TAttributeName>
-struct vb_attribute_vec2u32 : vb_attribute
-{
-  static size_t getSingleSize() { return sizeof(vec2u32); };
-  static const char *getAttributeName() { return TAttributeName; };
-  static size_t getValuesPerBlock() { return TCount; };
-  static size_t getDataSize() { return sizeof(vec2u32) * TCount; };
-
-  static GLenum getDataType() { return GL_INT_VEC2; };
-};
-
 template <const char *TAttributeName>
 struct vb_attribute_mat4 : vb_attribute
 {
@@ -64,7 +53,7 @@ struct vb_attributeQuery_internal<>
 {
   static size_t getSize() { return 0; };
 
-  static void setAttribute(shader * /* pShader */, const size_t /* totalSize */, const size_t /* offset */, const bool /* instanced */) { };
+  static void setAttribute(shader * /* pShader */, const size_t /* totalSize */, const size_t /* offset */, const bool /* instanced */) {};
 };
 
 template <typename T>
@@ -75,7 +64,7 @@ struct vb_attributeQuery_internal<T>
   static void setAttribute(shader *pShader, const size_t totalSize, const size_t offset, const bool instanced)
   {
     const uint32_t attributeIndex = shader_getAttributeIndex(pShader, T::getAttributeName());
-    
+
     glEnableVertexAttribArray(attributeIndex);
     glVertexAttribPointer(attributeIndex, (GLint)T::getSingleSize(), T::getDataType(), GL_FALSE, (GLsizei)totalSize, (const void *)offset);
 
@@ -149,7 +138,7 @@ inline lsResult vertexBuffer_create(vertexBuffer<Args...> *pBuffer, shader *pSha
 
   pBuffer->initialized = false; // Upload buffer data to validate buffer.
   pBuffer->pShader = pShader;
-  
+
   glGenVertexArrays(1, &pBuffer->vao);
   glBindVertexArray(pBuffer->vao);
 
@@ -167,7 +156,7 @@ inline void vertexBuffer_destroy(vertexBuffer<Args...> *pBuffer)
     glDeleteVertexArrays(1, &pBuffer->vao);
     pBuffer->vao = 0;
   }
-  
+
   if (pBuffer->vbo != 0)
   {
     glDeleteBuffers(1, &pBuffer->vbo);
@@ -184,15 +173,17 @@ inline lsResult vertexBuffer_setVertexBuffer(vertexBuffer<Args...> *pBuffer, con
 
   LS_ERROR_IF(pBuffer == nullptr || pData == nullptr, lsR_ArgumentNull);
 
-  const size_t singleBlockSize = vb_attributeQuery_internal<Args...>::getSize();
-  LS_ERROR_IF(singleBlockSize == 0, lsR_ResourceStateInvalid);
+  {
+    const size_t singleBlockSize = vb_attributeQuery_internal<Args...>::getSize();
+    LS_ERROR_IF(singleBlockSize == 0, lsR_ResourceStateInvalid);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, pBuffer->vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(U) * count, pData, constantlyChangingVertices ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, pBuffer->vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(U) * count, pData, constantlyChangingVertices ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
-  pBuffer->initialized = true;
-  pBuffer->count = (sizeof(U) * count) / singleBlockSize;
+    pBuffer->initialized = true;
+    pBuffer->count = (sizeof(U) * count) / singleBlockSize;
+  }
 
 epilogue:
   return result;

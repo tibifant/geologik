@@ -6,13 +6,14 @@
 
 enum texture_format_type
 {
-  tft_unsigned_byte,
-  tft_unsigned_short,
+  tft_unsigned_invalid,
+  tft_u8,
+  tft_u16,
 };
 
 struct texture
 {
-  enum texture_format_type textureFormatType;
+  texture_format_type textureFormatType = tft_unsigned_invalid;
   vec2s resolution = vec2s(0);
   uint32_t textureId = 0; // this is actually a GLuint.
   uint32_t textureUnit = 0; // this is actually a GLuint.
@@ -25,6 +26,8 @@ struct texture
 lsResult texture_create(_Out_ texture *pTexture, const bool nearestNeighbor = false);
 lsResult texture_create(_Out_ texture *pTexture, const char *filename, const bool nearestNeighbor = false);
 lsResult texture_set(texture *pTexture, const char *filename);
+lsResult texture_set_raw(texture *pTexture, const void *pData, texture_format_type textureFormatType, const vec2s resolution);
 lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolution);
+lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resolution);
 lsResult texture_bind(texture *pTexture, const uint32_t textureUnit);
 void texture_destroy(_Out_ texture *pTexture);

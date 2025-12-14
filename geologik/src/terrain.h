@@ -28,7 +28,7 @@ struct terrain
   uint16_t width;
   uint16_t height;
 
-  tile *pTiles;
+  tile *pTiles = nullptr;
 };
 
 lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width, const uint16_t height);

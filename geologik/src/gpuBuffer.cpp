@@ -16,36 +16,36 @@ epilogue:
   return result;
 }
 
-lsResult gpuBuffer_set(gpu_buffer *pBuffer, const uint8_t *pData /*nullptr valid for intialization*/, const uint32_t bindingPoint = 0)
+lsResult gpuBuffer_set(gpu_buffer *pBuffer, const uint8_t *pData /*nullptr valid for intialization*/, const size_t size, const uint32_t bindingPoint /* = 0 */)
 {
   lsResult result = lsR_Success;
 
   LS_ERROR_IF(pBuffer == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(!pBuffer->bufferId, lsR_ResourceStateInvalid);
+  LS_ERROR_IF(pBuffer->size != 0 && pBuffer->size != size, lsR_InvalidParameter);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, pBuffer->bufferId);
+  pBuffer->size = size;
 
-  uint32_t accessType;
-
-  switch (pBuffer->accessType)
   {
-  case gbat_dynamic: accessType = GL_DYNAMIC_STORAGE_BIT; break;
-  case gbat_read_only: accessType = GL_MAP_READ_BIT; break;
-  case gbat_write_only: accessType = GL_MAP_WRITE_BIT; break;
-  case gbat_persistent_stream: accessType = GL_MAP_PERSISTENT_BIT; break;
-  case gbat_persistent_stream_immediate_update: accessType = GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT; break;
-  default: lsFail(); break; // not implemented.
+    uint32_t accessType = gbat_read_only;
+
+    switch (pBuffer->accessType)
+    {
+    case gbat_dynamic: accessType = GL_DYNAMIC_STORAGE_BIT; break;
+    case gbat_read_only: accessType = GL_MAP_READ_BIT; break;
+    case gbat_write_only: accessType = GL_MAP_WRITE_BIT; break;
+    case gbat_persistent_stream: accessType = GL_MAP_PERSISTENT_BIT; break;
+    case gbat_persistent_stream_immediate_update: accessType = GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT; break;
+    default: lsFail(); break; // not implemented.
+    }
+
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, pBuffer->size, pData, accessType); // in case we rather want to use a variable sized buffer we need to use `glBufferData` instead.
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, pBuffer->bufferId);
   }
-
-  glBufferStorage(GL_SHADER_STORAGE_BUFFER, pBuffer->size, pData, accessType); // in case we rather want to use a variable sized buffer we need to use `glBufferData` instead.
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, pBuffer->bufferId);
-
   pBuffer->uploaded = true;
 
 epilogue:
-  if (pData != nullptr)
-    lsFreePtr(&pData);
-
   return result;
 }
 
@@ -87,7 +87,7 @@ lsResult gpuBuffer_bind(const gpu_buffer *pBuffer)
   LS_ERROR_IF(pBuffer == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(!pBuffer->bufferId, lsR_ResourceStateInvalid);
   LS_ERROR_IF(!pBuffer->uploaded, lsR_ResourceStateInvalid);
-  
+
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, pBuffer->bufferId);
 
 epilogue:
@@ -96,8 +96,6 @@ epilogue:
 
 void gpuBuffer_detroy(gpu_buffer *pBuffer)
 {
-  lsResult result = lsR_Success;
-
   if (pBuffer == nullptr || !pBuffer->bufferId)
     return;
 

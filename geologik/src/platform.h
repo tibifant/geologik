@@ -24,17 +24,6 @@ bool lsKeyboardState_IsKeyUp(const lsKeyboardState *pKeyboardState, const int32_
 bool lsKeyboardState_KeyPress(const lsKeyboardState *pKeyboardState, const int32_t key);
 bool lsKeyboardState_KeyLift(const lsKeyboardState *pKeyboardState, const int32_t key);
 
-struct lsAppState;
-
-struct lsAppView
-{
-  typedef lsResult(Update)(lsAppView *pSelf, lsAppView **ppNext, lsAppState *pAppState);
-  typedef void(Destroy)(lsAppView **ppSelf, lsAppState *pAppState);
-
-  Update *pUpdate;
-  Destroy *pDestroy;
-};
-
 struct lsAppState
 {
   SDL_Window *pWindow;
@@ -44,8 +33,6 @@ struct lsAppState
   SDL_Keycode key;
   bool rightMouseDown, leftMouseDown, keyDown, keyPressed, keyReleased, quit;
   lsKeyboardState keyboardState;
-
-  lsAppView *pCurrentView;
 };
 
 lsResult lsAppState_Create(lsAppState *pAppState, const char *title, const vec2s size);

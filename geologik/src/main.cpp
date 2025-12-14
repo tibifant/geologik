@@ -26,62 +26,54 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   (void)pArgs;
 
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
-  // TODO terrain init
 
   LS_ERROR_CHECK(render_init(&_AppState));
 
-  const float_t updateTimeMs = 1000.0f / 120.f;
-  size_t frameCount = 0;
-  float_t frameTimesMs = 0;
-  float_t cpuTimesMs = 0;
-
-  while (lsAppState_HandleWindowEvents(&_AppState))
   {
-    const int64_t before = lsGetCurrentTimeNs();
+    const float_t updateTimeMs = 1000.0f / 120.f;
+    size_t frameCount = 0;
+    float_t frameTimesMs = 0;
+    float_t cpuTimesMs = 0;
 
-    lsAppView *pNext = _AppState.pCurrentView;
-
-    LS_ERROR_CHECK(_AppState.pCurrentView->pUpdate(_AppState.pCurrentView, &pNext, &_AppState));
-
-    if (pNext != nullptr && pNext != _AppState.pCurrentView)
+    while (lsAppState_HandleWindowEvents(&_AppState))
     {
-      _AppState.pCurrentView->pDestroy(&_AppState.pCurrentView, &_AppState);
-      lsAssert(_AppState.pCurrentView == nullptr);
+      const int64_t before = lsGetCurrentTimeNs();
 
-      _AppState.pCurrentView = pNext;
-    }
+      {
+        render_startFrame(&_AppState);
+        render_drawTerrain(1024, 1024);
+      }
 
-    const int64_t afterCPU = lsGetCurrentTimeNs();
+      const int64_t afterCPU = lsGetCurrentTimeNs();
 
-    render_finalize();
+      render_finalize();
 
-    const int64_t afterRender = lsGetCurrentTimeNs();
+      const int64_t afterRender = lsGetCurrentTimeNs();
 
-    lsAppState_Swap(&_AppState);
+      lsAppState_Swap(&_AppState);
 
-    const float_t ms = (afterRender - before) * 1e-6f;
-    const int64_t sleepMs = (int64_t)floorf(updateTimeMs - ms - 0.5f /* if vsync, leave vsync 0.5ms to play with */);
-    
-    if (sleepMs > 0)
-      Sleep((DWORD)sleepMs);
+      const float_t ms = (afterRender - before) * 1e-6f;
+      const int64_t sleepMs = (int64_t)floorf(updateTimeMs - ms - 0.5f /* if vsync, leave vsync 0.5ms to play with */);
 
-    frameTimesMs += ms;
-    cpuTimesMs += (afterCPU - before) * 1e-6f;
-    frameCount++;
+      if (sleepMs > 0)
+        Sleep((DWORD)sleepMs);
 
-    if (frameCount >= 1000)
-    {
-      printf("Render tFPS: ~ %7.3f (~ %6.2f ms) | CPU tFPS: ~%7.3f (%6.2f ms)\n", frameCount / (frameTimesMs * 0.001), frameTimesMs / frameCount, frameCount / (cpuTimesMs * 0.001), cpuTimesMs / frameCount);
-      frameTimesMs = 0;
-      cpuTimesMs = 0;
-      frameCount = 0;
+      frameTimesMs += ms;
+      cpuTimesMs += (afterCPU - before) * 1e-6f;
+      frameCount++;
+
+      if (frameCount >= 1000)
+      {
+        printf("Render tFPS: ~ %7.3f (~ %6.2f ms) | CPU tFPS: ~%7.3f (%6.2f ms)\n", frameCount / (frameTimesMs * 0.001), frameTimesMs / frameCount, frameCount / (cpuTimesMs * 0.001), cpuTimesMs / frameCount);
+        frameTimesMs = 0;
+        cpuTimesMs = 0;
+        frameCount = 0;
+      }
     }
   }
 
   goto epilogue;
 epilogue:
-  if (_AppState.pCurrentView)
-    _AppState.pCurrentView->pDestroy(&_AppState.pCurrentView, &_AppState);
   
   render_destroy();
 
