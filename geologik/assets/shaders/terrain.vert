@@ -9,15 +9,20 @@ uniform mat4x4 vp;
 out flat uvec2 _texCoord;
 out float _height;
 
+struct tile
+{
+  uint heights[4];
+};
+
 layout(binding = 0, std430) buffer data 
 {
-  uint vals[];
+  tile tiles[];
 };
 
 void main ()
 {
   uvec2 pos = position + offset;
-  uint idx = (pos.y * width + pos.x) * 4;
+  uint idx = pos.y * width + pos.x;
   
   uint mask = 0xFFFF;
   uint height = 0; 
@@ -25,8 +30,8 @@ void main ()
   for (uint i = 0; i < 4; i++)
   {
     uint j = idx + i;
-    height += vals[j] & mask;
-    height += vals[j] >> 16;
+    height += tiles[idx].heights[i] & mask;
+    height += tiles[idx].heights[i] >> 16;
   }
 
   _height = float(height);
