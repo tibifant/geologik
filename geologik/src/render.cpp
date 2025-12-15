@@ -88,7 +88,6 @@ lsResult render_init(lsAppState *pAppState)
 
   _Render.windowSize = pAppState->windowSize;
   render_setLookAt(vec3f(512, 512, 0), vec3f(-64, -64, 1024), vec3f(0, 0, 1));
-  //render_setLookAt(vec3f(.5f, .5f, 0), vec3f(-.5f, -.5f, 4), vec3f(0, 0, 1));
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   // Create Erosion Buffer & Shader.
@@ -158,12 +157,12 @@ void render_startFrame(lsAppState *pAppState)
   SDL_GL_MakeCurrent(pAppState->pWindow, pAppState->glContext);
   glViewport(0, 0, (GLsizei)pAppState->windowSize.x, (GLsizei)pAppState->windowSize.y);
 
-  render_clearColor(vec4f(0, 0, 0, 1));
+  render_clearColor(vec4f(0.5f, 0.7f, 0.9f, 1));
   render_clearDepth();
 
   render_setDepthMode(rCR_Less);
   render_setBlendEnabled(false);
-  render_setDepthTestEnabled(false);
+  render_setDepthTestEnabled(true);
 }
 
 void render_endFrame(lsAppState *pAppState)

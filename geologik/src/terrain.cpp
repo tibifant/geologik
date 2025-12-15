@@ -17,26 +17,26 @@ void terrain_generate(terrain *pTerrain)
 {
   lsAssert(pTerrain != nullptr);
 
-  //size_t i = 0;
-  //
-  //for (size_t y = 0; y < pTerrain->height; y++)
-  //{
-  //  for (size_t x = 0; x < pTerrain->width; x++, i++)
-  //  {
-  //    const uint16_t height = (uint16_t)(lsSin(i) * 255 + 255);
-  //
-  //    for (size_t tt = 0; tt < tt_bedrock; tt++)
-  //      pTerrain->pTiles[i].layerHeights[tt] = height;
-  //
-  //    pTerrain->pTiles[i].layerHeights[tt_bedrock] = 8;
-  //  }
-  //}
+  size_t i = 0;
 
-  pTerrain->pTiles[0].layerHeights[0] = 1;
-  pTerrain->pTiles[pTerrain->width - 1].layerHeights[0] = 1;
-  pTerrain->pTiles[(pTerrain->height / 2) * pTerrain->width + pTerrain->width / 2].layerHeights[0] = 1;
-  pTerrain->pTiles[pTerrain->height * pTerrain->width - pTerrain->width].layerHeights[0] = 1;
-  pTerrain->pTiles[pTerrain->height * pTerrain->width - 1].layerHeights[0] = 1;
+  for (size_t y = 0; y < pTerrain->height; y++)
+  {
+    for (size_t x = 0; x < pTerrain->width; x++, i++)
+    {
+      const uint16_t height = (uint16_t)((lsSin(x * 0.1f) + lsCos(y * 0.1f)) * 100 + 255);
+
+      for (size_t tt = 0; tt < tt_bedrock; tt++)
+        pTerrain->pTiles[i].layerHeights[tt] = height;
+
+      pTerrain->pTiles[i].layerHeights[tt_bedrock] = 8;
+    }
+  }
+
+  //pTerrain->pTiles[0].layerHeights[0] = 1;
+  //pTerrain->pTiles[pTerrain->width - 1].layerHeights[0] = 1;
+  //pTerrain->pTiles[(pTerrain->height / 2) * pTerrain->width + pTerrain->width / 2].layerHeights[0] = 1;
+  //pTerrain->pTiles[pTerrain->height * pTerrain->width - pTerrain->width].layerHeights[0] = 1;
+  //pTerrain->pTiles[pTerrain->height * pTerrain->width - 1].layerHeights[0] = 1;
 }
 
 void terrain_destroy(terrain *pTerrain)
