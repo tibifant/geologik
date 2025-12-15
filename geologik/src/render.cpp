@@ -61,8 +61,8 @@ lsResult set_terrain_vertexData()
 {
   lsResult result = lsR_Success;
 
-  vec2u32 quadData[] = { vec2u32(0, 0), vec2u32(0, 1), vec2u32(1, 0), vec2u32(0, 1), vec2u32(1, 1), vec2u32(1, 0), vec2u32(0, 0) };
-  const size_t quadDataSize = LS_ARRAYSIZE(quadData);
+  vec2u32 quadData[] = { vec2u32(0, 0), vec2u32(0, 1), vec2u32(1, 0), vec2u32(0, 1), vec2u32(1, 1), vec2u32(1, 0) };
+  constexpr size_t quadDataSize = LS_ARRAYSIZE(quadData);
   static vec2u32 renderData[quadCountX * quadCountY * quadDataSize];
 
   for (uint32_t y = 0; y < quadCountY; y++)
@@ -88,6 +88,7 @@ lsResult render_init(lsAppState *pAppState)
 
   _Render.windowSize = pAppState->windowSize;
   render_setLookAt(vec3f(512, 512, 0), vec3f(-64, -64, 1024), vec3f(0, 0, 1));
+  //render_setLookAt(vec3f(.5f, .5f, 0), vec3f(-.5f, -.5f, 4), vec3f(0, 0, 1));
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   // Create Erosion Buffer & Shader.
@@ -198,6 +199,7 @@ void render_setLookAt(const vec3f position, const vec3f from, const vec3f up)
 
   const matrix v = matrix::LookAtLH(vec(from), vec(_Render.lookAt), vec(_Render.up));
   _Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf * 0.75f, vec2f(_Render.windowSize).AspectRatio(), 16, 1024 * 5);
+  //_Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf * 0.75f, vec2f(_Render.windowSize).AspectRatio(), 0.02f, 25.f);
 }
 
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin)
