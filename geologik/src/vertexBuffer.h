@@ -18,6 +18,7 @@ struct vb_attribute_float : vb_attribute
   static size_t getDataSize() { return sizeof(float_t) * TCount; };
 
   static GLenum getDataType() { return GL_FLOAT; };
+  static constexpr bool isInteger = false;
 };
 
 template <size_t TCount, const char *TAttributeName>
@@ -29,6 +30,7 @@ struct vb_attribute_uint : vb_attribute
   static size_t getDataSize() { return sizeof(uint32_t) * TCount; };
 
   static GLenum getDataType() { return GL_UNSIGNED_INT; };
+  static constexpr bool isInteger = true;
 };
 
 template <const char *TAttributeName>
@@ -38,6 +40,7 @@ struct vb_attribute_mat4 : vb_attribute
   static size_t getDataSize() { return sizeof(float_t) * 4 * 4; };
 
   static GLenum getDataType() { return GL_FLOAT; };
+  static constexpr bool isInteger = false;
 };
 
 template <typename ...Args>
@@ -66,7 +69,11 @@ struct vb_attributeQuery_internal<T>
     const uint32_t attributeIndex = shader_getAttributeIndex(pShader, T::getAttributeName());
 
     glEnableVertexAttribArray(attributeIndex);
-    glVertexAttribPointer(attributeIndex, (GLint)T::getSingleSize(), T::getDataType(), GL_FALSE, (GLsizei)totalSize, (const void *)offset);
+    
+    if constexpr (T::isInteger)
+      glVertexAttribIPointer(attributeIndex, (GLint)T::getValuesPerBlock(), T::getDataType(), (GLsizei)totalSize, (const void *)offset);
+    else
+      glVertexAttribPointer(attributeIndex, (GLint)T::getValuesPerBlock(), T::getDataType(), GL_FALSE, (GLsizei)totalSize, (const void *)offset);
 
     if (instanced)
       glVertexAttribDivisor(attributeIndex, 1);

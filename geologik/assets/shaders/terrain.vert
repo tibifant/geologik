@@ -33,5 +33,5 @@ void main ()
   _texCoord = pos;
   vec4 pos4 = vec4(vec2(pos), float(height), 1.0);
 
-  gl_Position = vp * pos4;
+  gl_Position = pos4 * vp;
 }

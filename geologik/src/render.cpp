@@ -63,7 +63,7 @@ lsResult set_terrain_vertexData()
 
   vec2u32 quadData[] = { vec2u32(0, 0), vec2u32(0, 1), vec2u32(1, 0), vec2u32(0, 1), vec2u32(1, 1), vec2u32(1, 0), vec2u32(0, 0) };
   const size_t quadDataSize = LS_ARRAYSIZE(quadData);
-  vec2u32 renderData[quadCountX * quadCountY * quadDataSize];
+  static vec2u32 renderData[quadCountX * quadCountY * quadDataSize];
 
   for (uint32_t y = 0; y < quadCountY; y++)
   {
@@ -87,7 +87,7 @@ lsResult render_init(lsAppState *pAppState)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  render_setLookAt(vec3f(64, 64, 0), vec3f(-64, -64, 1024), vec3f(0, 0, 1));
+  render_setLookAt(vec3f(512, 512, 0), vec3f(-64, -64, 1024), vec3f(0, 0, 1));
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   // Create Erosion Buffer & Shader.
@@ -162,7 +162,7 @@ void render_startFrame(lsAppState *pAppState)
 
   render_setDepthMode(rCR_Less);
   render_setBlendEnabled(false);
-  render_setDepthTestEnabled(true);
+  render_setDepthTestEnabled(false);
 }
 
 void render_endFrame(lsAppState *pAppState)
@@ -197,7 +197,7 @@ void render_setLookAt(const vec3f position, const vec3f from, const vec3f up)
   _Render.up = up.Normalize();
 
   const matrix v = matrix::LookAtLH(vec(from), vec(_Render.lookAt), vec(_Render.up));
-  _Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf, vec2f(_Render.windowSize).AspectRatio(), 1, 50000);
+  _Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf * 0.75f, vec2f(_Render.windowSize).AspectRatio(), 16, 1024 * 5);
 }
 
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin)
@@ -231,9 +231,9 @@ void render_drawTerrain(const uint32_t width, const uint32_t height)
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
 
-  for (uint32_t y = 0; y < height; y += quadCountX)
+  for (uint32_t y = 0; y < height; y += quadCountY)
   {
-    for (uint32_t x = 0; x < width; x += quadCountY)
+    for (uint32_t x = 0; x < width; x += quadCountX)
     {
       shader_setUniform(&_Render.terrain.renderShader, "offset", vec2u32(x, y));
       vertexBuffer_render(&_Render.terrain.buffer);
