@@ -1,31 +1,40 @@
 #version 430 core
 
-out vec4 color;
+struct tile
+{
+  uint heights[4];
+};
 
-in flat uvec2 _texCoord;
+layout(binding = 0, std430) buffer data 
+{
+  tile tiles[];
+};
+
+in flat uint _index;
 in float _height;
+
+out vec4 color;
 
 void main()
 {
-  //vec4 valuesA = texelFetch(textureA, _texCoord);
-  //vec4 valuesB = texelFetch(textureA, _texCoord);
-//
-  //if (valuesA.x) // snow
-  //  color = vec4(1, 1, 1, 0);
-  //else if (valuesA.y) // water
-  //  color = vec4(0, 0, 0.6, 0);
-  //else if (valuesA.z) // grass
-  //  color = vec4(0, 0.6, 0, 0);
-  //else if (valuesA.w) // soil
-  //  color = vec4(0.4, 0.4, 0, 0);
-  //else if (valuesB.x) // sand
-  //  color = vec4(0.6, 0.4, 0.1, 0);
-  //else if (valuesB.y) // limestone
-  //  color = vec4(0.7, 0.7, 0.7, 0);
-  //else if (valuesB.z) // stone
-  //  color = vec4(0.4, 0.4, 0.4, 0);
-  //else if (valuesB.w) // bedrock
-  //  color = vec4(0.1, 0.1, 0.1, 0);
+  vec4 colors[] = { vec4(1, 1, 1, 0), vec4(0, 0, 0.6, 0), vec4(0, 0.6, 0, 0), vec4(0.4, 0.4, 0, 0), vec4(0.6, 0.4, 0.1, 0), vec4(0.7, 0.7, 0.7, 0), vec4(0.4, 0.4, 0.4, 0), vec4(0.1, 0.1, 0.1, 0) };
+  uint mask = 0xFFFF;
 
-  color = vec4(vec3(_height * 0.001), 0); // vec2(_texCoord) * 0.01
+  vec4 c = vec4(1, 0, 0, 0);
+
+  for (uint i = 0; i < 4; i++)
+  {
+    if ((tiles[_index].heights[i] & mask) > 0)
+    {
+      c = colors[i * 2];
+      break;
+    }
+    else if ((tiles[_index].heights[i] >> 16) > 0)
+    {
+      c = colors[i * 2 + 1];
+      break;
+    }
+  }
+
+  color = c;
 }

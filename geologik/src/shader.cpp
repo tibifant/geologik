@@ -294,7 +294,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShaderHandle, 1, &fragmentSource, NULL);
   glCompileShader(fragmentShaderHandle);
-
+  
   status = GL_TRUE;
   glGetShaderiv(fragmentShaderHandle, GL_COMPILE_STATUS, &status);
 
@@ -308,7 +308,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-
+  
   if (requestNewProgram)
     pShader->shaderProgram = glCreateProgram();
   else

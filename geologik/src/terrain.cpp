@@ -31,12 +31,6 @@ void terrain_generate(terrain *pTerrain)
       pTerrain->pTiles[i].layerHeights[tt_bedrock] = 8;
     }
   }
-
-  //pTerrain->pTiles[0].layerHeights[0] = 1;
-  //pTerrain->pTiles[pTerrain->width - 1].layerHeights[0] = 1;
-  //pTerrain->pTiles[(pTerrain->height / 2) * pTerrain->width + pTerrain->width / 2].layerHeights[0] = 1;
-  //pTerrain->pTiles[pTerrain->height * pTerrain->width - pTerrain->width].layerHeights[0] = 1;
-  //pTerrain->pTiles[pTerrain->height * pTerrain->width - 1].layerHeights[0] = 1;
 }
 
 void terrain_destroy(terrain *pTerrain)
