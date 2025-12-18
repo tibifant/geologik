@@ -46,6 +46,7 @@ void generate_noise(T *pBuffer, const size_t targetCount)
   generate_noise_recursive(pBuffer, 4, targetCount);
 }
 
+// next steps: fixed point, template for on bounds cases
 template <typename T>
 void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t maxCount)
 {
@@ -58,18 +59,15 @@ void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t
   {
     for (size_t x = 0; x < filledCount; x++)
     {
-      T val = 0;
+      const size_t idx = y * filledCount + x + offset;
 
       // todo: handle edge tiles!
       if ((x == 0 && y == 0) || (x == filledCount - 1 && y == filledCount - 1))
       {
         // just self
-        val = pBuffer[filledOffset];
+        pBuffer[idx] = pBuffer[filledOffset];
         continue;
       }
-
-      // if y on bounds: 0.75 self + 0.25 horizontal
-      // if x on bounds: 0.75 self + 0.25 vertical
 
       const int8_t xDir = (x % 2) ? 1 : -1;
       const int8_t yDir = (y % 2) ? 1 : -1;
@@ -78,16 +76,29 @@ void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t
       constexpr float_t oneQuarter = 0.25 * 0.25;
 
       const vec2i parent = vec2u(x / 2, y / 2);
-      val = T(2 * threeQuarter  * pBuffer[filledOffset]); // 2*(0.75 / 4) self
-      
       const vec2i horizontal = parent + vec2i(xDir, 0);
-      val += T((threeQuarter  + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x]); // (0.75 / 4), (0.25 / 4)
+
+      if (y == 0 || y == filledCount - 1)
+      {
+        // if y on bounds: 0.75 self + 0.25 horizontal
+        pBuffer[idx] = T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x]));
+        continue;
+      }
 
       const vec2i vertical = parent + vec2i(0, yDir);
-      val += T((threeQuarter  + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x]); // (0.75 / 4), (0.25 / 4)
+      if (x == 0 || x == filledCount - 1)
+      {
+        // if x on bounds: 0.75 self + 0.25 vertical
+        pBuffer[idx] = T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x]));
+        continue;
+      }
+
+      pBuffer[idx] = T(2 * threeQuarter * pBuffer[filledOffset]); // 2*(0.75 / 4) parent
+      pBuffer[idx] += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x]); // (0.75 / 4), (0.25 / 4) horizontal
+      pBuffer[idx] += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x]); // (0.75 / 4), (0.25 / 4)
 
       const vec2i diagonal = parent + vec2i(xDir, yDir);
-      val += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledCount / 2 + diagonal.x]); // 2 * (0.25 / 4)
+      pBuffer[idx] += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledCount / 2 + diagonal.x]); // 2 * (0.25 / 4)
     }
   }
 
