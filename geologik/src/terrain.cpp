@@ -37,6 +37,7 @@ template <typename T>
 void generate_noise(T *pBuffer, const size_t targetCount)
 {
   lsAssert(pBuffer != nullptr);
+  lsAssert(__popcnt(targetCount) == 1); // must be a power of 2
 
   pBuffer[targetCount - 1] = T(lsGetRand());
   pBuffer[targetCount - 2] = T(lsGetRand());
