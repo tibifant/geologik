@@ -36,7 +36,7 @@ void terrain_generate(terrain *pTerrain)
 template <typename T>
 void generate_noise(T *pBuffer, const size_t targetCount)
 {
-  LS_ERROR_IF(pBuffer == nullptr, lsR_ArgumentNull);
+  lsAssert(pBuffer != nullptr);
 
   pBuffer[targetCount - 1] = T(lsGetRand());
   pBuffer[targetCount - 2] = T(lsGetRand());
@@ -51,6 +51,8 @@ template <typename T>
 void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t maxCount)
 {
   // TODO influence factor to prefer starting values
+
+  lsAssert(filledCount * filledCount < maxCount);
 
   const size_t offset = maxCount - filledCount * filledCount;
   const size_t filledOffset = maxCount - filledCount;
@@ -81,7 +83,7 @@ void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t
       if (y == 0 || y == filledCount - 1)
       {
         // if y on bounds: 0.75 self + 0.25 horizontal
-        pBuffer[idx] = T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x]));
+        pBuffer[idx] = T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x)]);
         continue;
       }
 
@@ -89,25 +91,23 @@ void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t
       if (x == 0 || x == filledCount - 1)
       {
         // if x on bounds: 0.75 self + 0.25 vertical
-        pBuffer[idx] = T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x]));
+        pBuffer[idx] = T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x)]);
         continue;
       }
 
       pBuffer[idx] = T(2 * threeQuarter * pBuffer[filledOffset]); // 2*(0.75 / 4) parent
-      pBuffer[idx] += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x]); // (0.75 / 4), (0.25 / 4) horizontal
-      pBuffer[idx] += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x]); // (0.75 / 4), (0.25 / 4)
+      pBuffer[idx] += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x)]); // (0.75 / 4), (0.25 / 4) horizontal
+      pBuffer[idx] += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x)]); // (0.75 / 4), (0.25 / 4)
 
       const vec2i diagonal = parent + vec2i(xDir, yDir);
-      pBuffer[idx] += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledCount / 2 + diagonal.x]); // 2 * (0.25 / 4)
+      pBuffer[idx] += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledCount / 2 + diagonal.x)]); // 2 * (0.25 / 4)
     }
   }
 
-  if (count >= maxCount) // TODO see below!
+  if (filledCount * filledCount == maxCount)
     return;
 
-  else
-    generate_noise_revursive(pBuffer, count * count, maxCount); // TODO: handle that the count could be bigger than max count but not all values are filled in yet
-
+  generate_noise_revursive(pBuffer, filledCount * filledCount, maxCount);
 }
 
 void terrain_destroy(terrain *pTerrain)
