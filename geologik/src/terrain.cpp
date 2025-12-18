@@ -52,31 +52,42 @@ void generate_noise_recursive(T *pBuffer, const size_t filledCount, const size_t
   // TODO influence factor to prefer starting values
 
   const size_t offset = maxCount - filledCount * filledCount;
-  const size_t filledCountOffset = maxCount - filledCount;
+  const size_t filledOffset = maxCount - filledCount;
 
   for (size_t y = 0; y < filledCount; y++)
   {
     for (size_t x = 0; x < filledCount; x++)
     {
-      // go one tile in all directions
-      static const vec2i[] dirs = { vec2i(-1, -1), vec2i(0, -1), vec2i(1, -1), vec2i(-1, 0), vec2i(0, 0), vec2i(1, 0), vec2i(1, 1), vec2i(0, 1), vec2i(1, 1) };
+      T val = 0;
 
-      for (size_t i = 0; i < LS_ARRAYSIZE(dirs); i++)
+      // todo: handle edge tiles!
+      if ((x == 0 && y == 0) || (x == filledCount - 1 && y == filledCount - 1))
       {
-        const vec2i pos = vec2i(x, y) + dirs[i];
-
-        // if out of bounds
-        if (pos.x < 0 || pos.x > filledCount || pos.y < 0 || pos.y > filledCount)
-          continue;
-
-        // which start tile are we in?
-        const vec2u paretnPos = (vec2u)(pos / 2); // floored coordiantes
-
-        // determine influence by tile
-        
-
-        // set value based on tiles 
+        // just self
+        val = pBuffer[filledOffset];
+        continue;
       }
+
+      // if y on bounds: 0.75 self + 0.25 horizontal
+      // if x on bounds: 0.75 self + 0.25 vertical
+
+      const int8_t xDir = (x % 2) ? 1 : -1;
+      const int8_t yDir = (y % 2) ? 1 : -1;
+
+      constexpr float_t threeQuarter = 0.75 * 0.25;
+      constexpr float_t oneQuarter = 0.25 * 0.25;
+
+      const vec2i parent = vec2u(x / 2, y / 2);
+      val = T(2 * threeQuarter  * pBuffer[filledOffset]); // 2*(0.75 / 4) self
+      
+      const vec2i horizontal = parent + vec2i(xDir, 0);
+      val += T((threeQuarter  + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledCount / 2 + horizontal.x]); // (0.75 / 4), (0.25 / 4)
+
+      const vec2i vertical = parent + vec2i(0, yDir);
+      val += T((threeQuarter  + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledCount / 2 + vertical.x]); // (0.75 / 4), (0.25 / 4)
+
+      const vec2i diagonal = parent + vec2i(xDir, yDir);
+      val += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledCount / 2 + diagonal.x]); // 2 * (0.25 / 4)
     }
   }
 
