@@ -46,7 +46,7 @@ void generate_noise(T *pBuffer, const size_t targetWidth)
   pBuffer[targetCount - 3] = T(lsGetRand());
   pBuffer[targetCount - 4] = T(lsGetRand());
 
-  generate_noise_recursive(pBuffer, 4, targetWidth);
+  generate_noise_recursive(pBuffer, 2, targetWidth);
 }
 
 // next steps: fixed point, template for on bounds cases
@@ -119,6 +119,8 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
       const vec2i diagonal = parent + vec2i(xDir, yDir);
       val += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledWidth + diagonal.x)]); // 2 * (0.25 / 4)
       
+      // todo if i just add them, i need to make sure there max size is not to big lol
+
       pBuffer[idx] += f * val;
     }
   }
