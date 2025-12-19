@@ -94,11 +94,11 @@ lsResult render_init(lsAppState *pAppState)
   {
     terrain t;
 
-    LS_ERROR_CHECK(terrain_init(&t, 1024, 1024));
+    LS_ERROR_CHECK(terrain_init(&t, 1024));
     terrain_generate(&t);
 
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
-    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.height)); // TODO!
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.width));
 
     terrain_destroy(&t);
 

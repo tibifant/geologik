@@ -36,5 +36,5 @@ void main()
     }
   }
 
-  color = c * _height * 0.001;
+  color = c; //* _height * 0.001;
 }
