@@ -39,16 +39,21 @@ void terrain_generate(terrain *pTerrain)
   //generate_sin_cos(pTerrain);
 
   uint16_t *pNoise = nullptr;
-  lsAlloc(&pNoise, pTerrain->width * pTerrain->width); // TODO errror check
-  
+  lsAllocZero(&pNoise, pTerrain->width * pTerrain->width); // TODO errror check
+
   for (size_t tt = 6; tt < tt_bedrock; tt++)
   {
     generate_noise(pNoise, pTerrain->width);
-  
+
+    FILE *pFile = fopen(sformat("C:\\data\\noise", tt, ".raw"), "wb");
+    fwrite(pNoise, sizeof(uint16_t), pTerrain->width * pTerrain->width, pFile);
+    fflush(pFile);
+    fclose(pFile);
+
     for (size_t i = 0; i < pTerrain->width * pTerrain->width; i++)
       pTerrain->pTiles[i].layerHeights[tt] = pNoise[i];
   }
-  
+
   lsFreePtr(&pNoise);
 
   // TODO: set bedrock manually

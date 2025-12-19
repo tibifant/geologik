@@ -82,7 +82,7 @@ epilogue:
   return result;
 }
 
-lsResult render_init(lsAppState *pAppState)
+lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 {
   lsResult result = lsR_Success;
 
@@ -94,7 +94,7 @@ lsResult render_init(lsAppState *pAppState)
   {
     terrain t;
 
-    LS_ERROR_CHECK(terrain_init(&t, 1024));
+    LS_ERROR_CHECK(terrain_init(&t, terrainWidth));
     terrain_generate(&t);
 
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
@@ -226,13 +226,13 @@ void render_draw3DQuad(const matrix &model, const render_textureId textureIndex)
   render_drawQuad(model * _Render.vp, textureIndex);
 }
 
-void render_drawTerrain(const uint32_t width, const uint32_t height)
+void render_drawTerrain(const uint32_t width)
 {
   shader_bind(&_Render.terrain.renderShader);
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
-
-  for (uint32_t y = 0; y < height; y += quadCountY)
+  
+  for (uint32_t y = 0; y < width; y += quadCountY)
   {
     for (uint32_t x = 0; x < width; x += quadCountX)
     {

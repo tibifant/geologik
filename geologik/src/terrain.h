@@ -43,14 +43,19 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
   // TODO variable influence factor
 
   const size_t filledCount = filledWidth * filledWidth;
-  const size_t targetFilledCount = filledCount * 4;
   const size_t targetFilledWidth = filledWidth * 2;
+  const size_t targetFilledCount = targetFilledWidth * targetFilledWidth;
   const size_t maxCount = maxWidth * maxWidth;
 
   lsAssert(targetFilledCount <= maxCount);
 
   const size_t offset = maxCount - targetFilledCount;
   const size_t filledOffset = maxCount - filledCount;
+
+  FILE *pFile = fopen(sformat("C:\\data\\noise", filledWidth, ".raw"), "wb");
+  fwrite(pBuffer + filledOffset, sizeof(uint16_t), filledCount, pFile);
+  fflush(pFile);
+  fclose(pFile);
 
   for (size_t y = 0; y < targetFilledWidth; y++)
   {
@@ -60,16 +65,19 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
 
       // Random generation
 
-      pBuffer[idx] = 0.3 * (T)(lsGetRand());
+      //pBuffer[idx] = 0.1 * (T)(lsGetRand());
 
       // Upscaling
 
-      constexpr float_t f = 0.7;
+      constexpr float_t f = 1;//0.9;
 
       if ((x == 0 && y == 0) || (x == targetFilledWidth - 1 && y == targetFilledWidth - 1))
       {
         // just self
-        pBuffer[idx] += f * pBuffer[filledOffset];
+        const uint64_t val = f * pBuffer[filledOffset];
+        lsAssert(val <= lsMaxValue<uint16_t>());
+
+        pBuffer[idx] = val;
         continue;
       }
 
@@ -85,7 +93,9 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
       if (y == 0 || y == targetFilledWidth - 1)
       {
         // if y on bounds: 0.75 self + 0.25 horizontal
-        pBuffer[idx] += f * T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (horizontal.y * filledWidth + horizontal.x)]); // ?
+        const uint64_t val = f * uint64_t(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (horizontal.y * filledWidth + horizontal.x)]); // ?
+        lsAssert(val <= lsMaxValue<uint16_t>());
+        pBuffer[idx] = val;
         continue;
       }
 
@@ -93,22 +103,26 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
       if (x == 0 || x == targetFilledWidth - 1)
       {
         // if x on bounds: 0.75 self + 0.25 vertical
-        pBuffer[idx] += f * T(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (vertical.y * filledWidth + vertical.x)]);
+        const uint64_t val = f * uint64_t(0.75 * pBuffer[filledOffset] + 0.25 * pBuffer[filledOffset + (vertical.y * filledWidth + vertical.x)]);
+        lsAssert(val <= lsMaxValue<uint16_t>());
+        pBuffer[idx] = val;
         continue;
       }
 
-      T val = 0;
+      uint64_t val = 0;
 
-      val = T(2 * threeQuarter * pBuffer[filledOffset]); // 2*(0.75 / 4) parent
-      val += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledWidth + horizontal.x)]); // (0.75 / 4), (0.25 / 4) horizontal
-      val += T((threeQuarter + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledWidth + vertical.x)]); // (0.75 / 4), (0.25 / 4)
+      val = uint64_t(2 * threeQuarter * pBuffer[filledOffset]); // 2*(0.75 / 4) parent
+      val += uint64_t((threeQuarter + oneQuarter) * pBuffer[filledOffset + (horizontal.y * filledWidth + horizontal.x)]); // (0.75 / 4), (0.25 / 4) horizontal
+      val += uint64_t((threeQuarter + oneQuarter) * pBuffer[filledOffset + (vertical.y * filledWidth + vertical.x)]); // (0.75 / 4), (0.25 / 4) vertical
 
       const vec2i diagonal = parent + vec2i(xDir, yDir);
-      val += T(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledWidth + diagonal.x)]); // 2 * (0.25 / 4)
+      val += uint64_t(2 * oneQuarter * pBuffer[filledOffset + (diagonal.y * filledWidth + diagonal.x)]); // 2 * (0.25 / 4) diagonal
+
+      lsAssert(val <= lsMaxValue<uint16_t>());
 
       // todo if i just add them, i need to make sure there max size is not to big lol
 
-      pBuffer[idx] += f * val;
+      pBuffer[idx] += T(f * val);
     }
   }
 

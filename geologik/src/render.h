@@ -7,7 +7,7 @@ enum render_textureId : size_t
   rTI_default,
 };
 
-lsResult render_init(lsAppState *pAppState);
+lsResult render_init(lsAppState *pAppState, const size_t terrainWidth);
 void render_startFrame(lsAppState *pAppState);
 void render_endFrame(lsAppState *pAppState);
 void render_destroy();
@@ -18,7 +18,7 @@ void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw2DQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw3DQuad(const matrix &model, const render_textureId textureIndex);
-void render_drawTerrain(const uint32_t width, const uint32_t height);
+void render_drawTerrain(const uint32_t width);
 
 void render_flushRenderQueue();
 

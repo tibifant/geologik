@@ -25,9 +25,11 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   (void)argc;
   (void)pArgs;
 
+  constexpr size_t width = 1024;
+
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
 
-  LS_ERROR_CHECK(render_init(&_AppState));
+  LS_ERROR_CHECK(render_init(&_AppState, width));
 
   {
     const float_t updateTimeMs = 1000.0f / 120.f;
@@ -41,7 +43,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
 
       {
         render_startFrame(&_AppState);
-        render_drawTerrain(1024, 1024);
+        render_drawTerrain(width);
       }
 
       const int64_t afterCPU = lsGetCurrentTimeNs();

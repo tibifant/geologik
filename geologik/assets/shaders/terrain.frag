@@ -36,5 +36,5 @@ void main()
     }
   }
 
-  color = c; //* _height * 0.001;
+  color = vec4(0, 0, 1 -_height * 0.000009, 0); //c; //* _height * 0.001;
 }
