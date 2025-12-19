@@ -63,10 +63,6 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
     {
       const size_t idx = y * targetFilledWidth + x + offset;
 
-      // Random generation
-
-      //pBuffer[idx] = 0.1 * (T)(lsGetRand());
-
       // Upscaling
 
       constexpr float_t f = 1;//0.9;
@@ -122,7 +118,11 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
 
       // todo if i just add them, i need to make sure there max size is not to big lol
 
-      pBuffer[idx] += T(f * val);
+      pBuffer[idx] = T(f * val);
+
+      // Random generation
+
+      //pBuffer[idx] += 0.1 * (T)(lsGetRand());
     }
   }
 
