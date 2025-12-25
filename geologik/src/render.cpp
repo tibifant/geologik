@@ -231,7 +231,7 @@ void render_drawTerrain(const uint32_t width)
   shader_bind(&_Render.terrain.renderShader);
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
-  
+
   for (uint32_t y = 0; y < width; y += quadCountY)
   {
     for (uint32_t x = 0; x < width; x += quadCountX)
