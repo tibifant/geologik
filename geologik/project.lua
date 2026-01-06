@@ -1,8 +1,6 @@
 ProjectName = "geologik"
 project(ProjectName)
 
-dependson { "gamelib" }
-
   --Settings
   kind "ConsoleApp"
   language "C++"
@@ -22,12 +20,13 @@ dependson { "gamelib" }
   objdir "intermediate/obj"
 
   files { "src/**.c", "src/**.cc", "src/**.cpp", "src/**.cxx", "src/**.h", "src/**.hh", "src/**.hpp", "src/**.inl", "src/**rc" }
+  files { "include/**.h", "include/**.hh", "include/**.hpp", "include/**.inl" }
   files { "assets/shaders/*.frag", "assets/shaders/*.vert" }
 
   files { "project.lua" }
   
   includedirs { "src**" }
-  includedirs { "../gamelib/include/" }
+  includedirs { "include**" }
   includedirs { "../3rdParty/SDL2/include" }
   includedirs { "../3rdParty/glew/include" }
   includedirs { "../3rdParty/stb/include" }
@@ -35,13 +34,6 @@ dependson { "gamelib" }
   targetname(ProjectName)
   targetdir "../builds/bin"
   debugdir "../builds/bin"
-  
-filter {}
-
-filter {"configurations:Release"}
-  links { "../builds/lib/gamelib.lib" }
-filter {"configurations:Debug"}
-  links { "../builds/lib/gamelibD.lib" }
 
 filter {}
 

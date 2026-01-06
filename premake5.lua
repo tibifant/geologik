@@ -5,4 +5,3 @@ solution "geologik"
   platforms { "x64" }
 
   dofile "geologik/project.lua"
-  dofile "gamelib/project.lua"
