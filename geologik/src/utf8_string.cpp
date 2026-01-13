@@ -1836,7 +1836,7 @@ iterated_char::iterated_char(const char *character, const utf32_t codePoint, con
 //////////////////////////////////////////////////////////////////////////
 
 #include "testable.h"
-REGISTER_TESTABLE_FILE(1)
+REGISTER_TESTABLE_FILE(0)
 
 DEFINE_TESTABLE(string_TestCreateEmpty)
 {

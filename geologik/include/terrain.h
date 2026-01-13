@@ -66,7 +66,7 @@ void generate_noise_recursive(T *pBuffer, const size_t filledWidth, const size_t
       // Upscaling
 
       const int8_t xDir = (x & 1) ? 1 : -1;
-      const int64_t yDir = (y & 1) ? filledWidth : -filledWidth;
+      const int64_t yDir = (y & 1) ? filledWidth : -(int64_t)filledWidth;
 
       const vec2i parent = vec2i(x / 2, y / 2);
       const size_t parentIdx = parent.y * filledWidth + parent.x;
@@ -124,7 +124,7 @@ template <typename T>
 void generate_noise(T *pBuffer, const size_t targetWidth)
 {
   lsAssert(pBuffer != nullptr);
-  lsAssert(__popcnt(targetWidth) == 1); // must be a power of 2
+  lsAssert(__popcnt64(targetWidth) == 1); // must be a power of 2
   lsAssert(targetWidth >= 4);
 
   const size_t targetCount = targetWidth * targetWidth;

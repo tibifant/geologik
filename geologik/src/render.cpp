@@ -94,7 +94,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   {
     terrain t;
 
-    LS_ERROR_CHECK(terrain_init(&t, terrainWidth));
+    LS_ERROR_CHECK(terrain_init(&t, (uint16_t)terrainWidth));
     terrain_generate(&t);
 
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));

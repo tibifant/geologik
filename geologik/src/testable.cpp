@@ -21,7 +21,7 @@ _testable_init register_testable(const char *name, testable_func func)
 
 lsResult run_testables()
 {
-  register_testable_files<10>(); // <-- INCREMENT, when new tests are added.
+  register_testable_files<0>(); // <-- INCREMENT, when new tests are added.
 
   lsResult result = lsR_Success;
 
