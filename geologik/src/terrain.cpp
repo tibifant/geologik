@@ -15,7 +15,7 @@ epilogue:
 void generate_sin_cos(terrain *pTerrain)
 {
   lsAssert(pTerrain != nullptr);
-
+  
   size_t i = 0;
 
   for (size_t y = 0; y < pTerrain->width; y++)

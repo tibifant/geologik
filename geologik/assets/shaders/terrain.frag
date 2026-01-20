@@ -13,18 +13,16 @@ layout(binding = 0, std430) buffer data
 uniform uint width;
 
 in flat uint _index;
-in float _height;
 
 out vec4 color;
 
 uint height_from_idx(uint idx)
 {
   uint mask = 0xFFFF;
-  uint height = 0; 
+  uint height = 0;
 
   for (uint i = 0; i < 4; i++)
   {
-    uint j = idx + i;
     height += tiles[idx].heights[i] & mask;
     height += tiles[idx].heights[i] >> 16;
   }
@@ -62,6 +60,5 @@ void main()
     }
   }
 
-  color = vec4(vec3(_height * 0.000009), 0); //c; //* _height * 0.001;
   color = vec4(vec3(dot(normalize(vec3(0.2, 0.6, 0.3)), normal) * 0.5 + 0.5), 1);
 }

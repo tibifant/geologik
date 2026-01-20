@@ -7,7 +7,6 @@ uniform uint width;
 uniform mat4x4 vp;
 
 out flat uint _index;
-out float _height;
 
 struct tile
 {
@@ -29,12 +28,10 @@ void main ()
 
   for (uint i = 0; i < 4; i++)
   {
-    uint j = idx + i;
     height += tiles[idx].heights[i] & mask;
     height += tiles[idx].heights[i] >> 16;
   }
 
-  _height = float(height);
   _index = idx;
   vec4 pos4 = vec4(vec2(pos), float(height) * 0.01, 1.0);
 
