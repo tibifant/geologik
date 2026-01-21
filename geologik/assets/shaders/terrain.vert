@@ -20,7 +20,7 @@ layout(binding = 0, std430) buffer data
 
 void main ()
 {
-  uvec2 pos = min(position + offset, uvec2(width));
+  uvec2 pos = min(position + offset, uvec2(width - 1));
   uint idx = pos.y * width + pos.x;
   
   uint mask = 0xFFFF;

@@ -95,7 +95,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     terrain t;
 
     LS_ERROR_CHECK(terrain_init(&t, (uint16_t)terrainWidth));
-    terrain_generate(&t);
+    LS_ERROR_CHECK(terrain_generate(&t));
 
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
     LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.width));
@@ -153,7 +153,7 @@ void render_startFrame(lsAppState *pAppState)
   _Render.frameRatio = (float_t)(now - _Render.lastFrameStartNs) / (1e9f / 60.f);
   _Render.lastFrameStartNs = now;
   _Render.windowSize = pAppState->windowSize;
-
+  
   SDL_GL_MakeCurrent(pAppState->pWindow, pAppState->glContext);
   glViewport(0, 0, (GLsizei)pAppState->windowSize.x, (GLsizei)pAppState->windowSize.y);
 

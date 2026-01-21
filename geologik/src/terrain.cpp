@@ -32,32 +32,37 @@ void generate_sin_cos(terrain *pTerrain)
   }
 }
 
-void terrain_generate(terrain *pTerrain)
+lsResult terrain_generate(terrain *pTerrain)
 {
+  lsResult result = lsR_Success;
+
   lsAssert(pTerrain != nullptr);
 
   //generate_sin_cos(pTerrain);
 
   uint16_t *pNoise = nullptr;
-  lsAllocZero(&pNoise, pTerrain->width * pTerrain->width); // TODO errror check
+  LS_ERROR_CHECK(lsAllocZero(&pNoise, pTerrain->width * pTerrain->width)); // TODO errror check
 
   for (size_t tt = 6; tt < tt_bedrock; tt++)
   {
     generate_noise(pNoise, pTerrain->width);
-
+  
     FILE *pFile = fopen(sformat("C:\\data\\noise", tt, ".raw"), "wb");
     fwrite(pNoise, sizeof(uint16_t), pTerrain->width * pTerrain->width, pFile);
     fflush(pFile);
     fclose(pFile);
-
+  
     for (size_t i = 0; i < pTerrain->width * pTerrain->width; i++)
       pTerrain->pTiles[i].layerHeights[tt] = pNoise[i];
   }
-
+  
   lsFreePtr(&pNoise);
 
   // TODO: set bedrock manually
   //pTerrain->pTiles[i].layerHeights[tt_bedrock] = 8;
+
+epilogue:
+  return result;
 }
 
 void terrain_destroy(terrain *pTerrain)
