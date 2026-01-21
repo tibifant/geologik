@@ -32,6 +32,11 @@ void generate_sin_cos(terrain *pTerrain)
   }
 }
 
+void terrain_generate_layer(terrain *pTerrain, const terrain_type layer, const uint16_t min, const uint16_t max)
+{
+  
+}
+
 lsResult terrain_generate(terrain *pTerrain)
 {
   lsResult result = lsR_Success;
@@ -41,7 +46,7 @@ lsResult terrain_generate(terrain *pTerrain)
   //generate_sin_cos(pTerrain);
 
   uint16_t *pNoise = nullptr;
-  LS_ERROR_CHECK(lsAllocZero(&pNoise, pTerrain->width * pTerrain->width)); // TODO errror check
+  LS_ERROR_CHECK(lsAllocZero(&pNoise, pTerrain->width * pTerrain->width));
 
   for (size_t tt = 6; tt < tt_bedrock; tt++)
   {
