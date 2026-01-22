@@ -85,34 +85,21 @@ matrix vec::OuterProduct4(const vec a, const vec b)
 
 //////////////////////////////////////////////////////////////////////////
 
-lsResult quaternion::SquadSetup(_Out_ vec *pA, _Out_ vec *pB, _Out_ vec *pC, const quaternion &q0, const quaternion &q1, const quaternion &q2, const quaternion &q3) const
+void quaternion::SquadSetup(_Out_ vec *pA, _Out_ vec *pB, _Out_ vec *pC, const quaternion &q0, const quaternion &q1, const quaternion &q2, const quaternion &q3) const
 {
-  lsResult result = lsR_Success;
-
-  LS_ERROR_IF(pA == nullptr || pB == nullptr || pC == nullptr, lsR_ArgumentNull);
+  lsAssert(!(pA == nullptr || pB == nullptr || pC == nullptr));
   DirectX::XMQuaternionSquadSetup(&pA->v, &pB->v, &pC->v, q0.q, q1.q, q2.q, q3.q);
-
-  goto epilogue;
-epilogue:
-  return result;
 }
 
-lsResult quaternion::ToAxisAngle(_Out_ vec *pAxis, _Out_ float_t *pAngle) const
+void quaternion::ToAxisAngle(_Out_ vec *pAxis, _Out_ float_t *pAngle) const
 {
-  lsResult result = lsR_Success;
-
-  LS_ERROR_IF(pAxis == nullptr || pAngle == nullptr, lsR_ArgumentNull);
+  lsAssert(!(pAxis == nullptr || pAngle == nullptr));
   DirectX::XMQuaternionToAxisAngle(&pAxis->v, pAngle, q);
-
-  goto epilogue;
-epilogue:
-  return result;
 }
 
-lsResult quaternion::GetAverageEst(_In_ const quaternion *pValues, const size_t count, _Out_ quaternion *pAverage)
+quaternion quaternion::GetAverageEst(_In_ const quaternion *pValues, const size_t count)
 {
-  if (pValues == nullptr || pAverage == nullptr)
-    return lsR_ArgumentNull;
+  lsAssert(pValues != nullptr);
 
   vec avg(0, 0, 0, 0);
 
@@ -126,33 +113,50 @@ lsResult quaternion::GetAverageEst(_In_ const quaternion *pValues, const size_t 
       avg += vec(q.q);
   }
 
-  *pAverage = quaternion(avg.v).Normalize();
-
-  return lsR_Success;
+  return quaternion(avg.v).Normalize();
 }
 
-vec3f quaternion::ToEulerAngles() const
+vec3f quaternion::ToEulerAngles() const // Tait–Bryan
 {
-  // x-axis rotation
-  const float_t sinr_cosp = 2.0f * (w * x + y * z);
-  const float_t cosr_cosp = 1.0f - 2.0f * (x * x + y * y);
-  const float_t roll = atan2(sinr_cosp, cosr_cosp);
+  // See: https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/ (somehow works flawlessly - so far)
+  const vec sqr(DirectX::XMVectorMultiply(q, q));
+  const float_t unit = sqr.x + sqr.y + sqr.z + sqr.w; // if normalised is one, otherwise is correction factor
+  const float_t test = x * y + z * w;
 
-  // y-axis rotation
-  const float_t sinp = 2.0f * (w * y - z * x);
-  float_t pitch;
-
-  if (lsAbs(sinp) >= 1)
-    pitch = copysignf(lsHALFPIf, sinp);
+  if (test > 0.499f * unit) // singularity at north pole (brrr!)
+    return vec3f(2.f * lsATan2(x, w), lsHALFPIf, 0);
+  else if (test < -0.499f * unit) // singularity at south pole (brrr!)
+    return vec3f(-2.f * lsATan2(x, w), -lsHALFPIf, 0);
   else
-    pitch = asinf(sinp);
+    return vec3f(lsATan2(2.f * y * w - 2.f * x * z, sqr.x - sqr.y - sqr.z + sqr.w), lsASin(2.f * test / unit), lsATan2(2.f * x * w - 2.f * y * z, -sqr.x + sqr.y - sqr.z + sqr.w));
+}
 
-  // z-axis rotation
-  const float_t siny_cosp = 2.0f * (w * z + x * y);
-  const float_t cosy_cosp = 1.0f - 2.0f * (y * y + z * z);
-  const float_t yaw = atan2(siny_cosp, cosy_cosp);
+// https://stackoverflow.com/a/27496984
+inline vec3f euler_from_three_axis_internal(const float_t r11, const float_t r12, const float_t r21, const float_t r31, const float_t r32)
+{
+  return vec3f(lsATan2(r31, r32), lsASin(r21), lsATan2(r11, r12));
+}
 
-  return vec3f(yaw, pitch, roll);
+vec3f quaternion::ToEulerAnglesXYZ() const
+{
+  return euler_from_three_axis_internal(
+    -2.f * (x * y - w * z),
+    w * w - x * x + y * y - z * z,
+    2 * (y * z + w * x),
+    -2.f * (x * z - w * y),
+    w * w - x * x - y * y + z * z
+  );
+}
+
+vec3f quaternion::ToEulerAnglesZYX() const
+{
+  return euler_from_three_axis_internal(
+    2.f * (x * y + w * z),
+    w * w + x * x - y * y - z * z,
+    -2.f * (x * z - w * y),
+    2.f * (y * z + w * x),
+    w * w - x * x - y * y + z * z
+  );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,8 +165,8 @@ lsResult matrix::Decompose(_Out_ vec *pOutScale, _Out_ quaternion *pOutRotQuat, 
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pOutScale == nullptr || pOutRotQuat == nullptr || pOutTrans == nullptr, lsR_ArgumentNull);
-  LS_ERROR_IF(DirectX::XMMatrixDecompose(&pOutScale->v, &pOutRotQuat->q, &pOutTrans->v, m), lsR_InternalError);
+  lsAssert(pOutScale != nullptr && pOutRotQuat != nullptr && pOutTrans != nullptr);
+  LS_ERROR_IF(!DirectX::XMMatrixDecompose(&pOutScale->v, &pOutRotQuat->q, &pOutTrans->v, m), lsR_InternalError);
 
   goto epilogue;
 epilogue:

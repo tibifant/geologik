@@ -41,10 +41,10 @@ void main()
   float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
   vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
   
-  vec4 colors[] = { vec4(1, 1, 1, 0), vec4(0, 0, 0.6, 0), vec4(0, 0.6, 0, 0), vec4(0.4, 0.4, 0, 0), vec4(0.6, 0.4, 0.1, 0), vec4(0.7, 0.7, 0.7, 0), vec4(0.4, 0.4, 0.4, 0), vec4(0.1, 0.1, 0.1, 0) };
+  vec3 colors[] = { vec3(1, 1, 1), vec3(0, 0, 0.6), vec3(0, 0.6, 0), vec3(0.4, 0.4, 0), vec3(0.6, 0.4, 0.1), vec3(0.7, 0.7, 0.7), vec3(0.4, 0.4, 0.4), vec3(0.1, 0.1, 0.1) };
   uint mask = 0xFFFF;
 
-  vec4 c = vec4(1, 0, 0, 0);
+  vec3 c = vec3(1, 0, 0);
 
   for (uint i = 0; i < 4; i++)
   {

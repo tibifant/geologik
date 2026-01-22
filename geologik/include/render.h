@@ -12,7 +12,7 @@ void render_startFrame(lsAppState *pAppState);
 void render_endFrame(lsAppState *pAppState);
 void render_destroy();
 
-void render_setLookAt(const vec3f position, const vec3f from, const vec3f up);
+void render_updateCamera(lsAppState *pAppState);
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
 
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);

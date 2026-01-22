@@ -44,6 +44,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       {
         render_startFrame(&_AppState);
         render_drawTerrain(width);
+        render_updateCamera(&_AppState);
       }
 
       const int64_t afterCPU = lsGetCurrentTimeNs();

@@ -32,10 +32,10 @@ void generate_sin_cos(terrain *pTerrain)
   }
 }
 
-void terrain_generate_layer(terrain *pTerrain, const terrain_type layer, const uint16_t min, const uint16_t max)
-{
-  
-}
+//void terrain_generate_layer(terrain *pTerrain, const terrain_type layer, const uint16_t min, const uint16_t max)
+//{
+//  
+//}
 
 lsResult terrain_generate(terrain *pTerrain)
 {
@@ -74,7 +74,7 @@ void terrain_destroy(terrain *pTerrain)
 {
   if (pTerrain == nullptr)
     return;
-
+  
   lsFreePtr(&pTerrain->pTiles);
 }
 

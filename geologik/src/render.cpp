@@ -22,9 +22,29 @@ extern const char _Attrib_Rot[] = "rotation";
 
 //////////////////////////////////////////////////////////////////////////
 
+struct camera_3d
+{
+  matrix view;
+  matrix projection;
+
+  matrix viewProjection;
+};
+
+struct camera_3d_free_floating : camera_3d
+{
+  vec3f position;
+  vec3f direction;
+};
+
+void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f position, const vec3f direction, const vec2f windowSize);
+void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir);
+void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir);
+void camera_3d_free_floating_update(camera_3d_free_floating &cam);
+
+//////////////////////////////////////////////////////////////////////////
+
 static struct
 {
-
   struct
   {
     shader computeShader;
@@ -34,7 +54,7 @@ static struct
   struct
   {
     shader renderShader;
-    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // 128 * 128?
+    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer;
   } terrain;
 
   struct
@@ -44,13 +64,45 @@ static struct
   } plane;
 
   pool<texture> textures;
-  vec3f lookAt, up, cameraDistance;
+  camera_3d_free_floating camera;
   matrix vp;
   vec2s windowSize;
   float_t frameRatio;
   int64_t lastFrameStartNs;
   float_t ticksSinceOrigin;
 } _Render;
+
+//////////////////////////////////////////////////////////////////////////
+
+void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f position, const vec3f direction, const vec2f windowSize)
+{
+  cam.position = position;
+  cam.direction = direction;
+
+  cam.projection = matrix::PerspectiveFovRH(lsHALFPIf, windowSize.AspectRatio(), 0.001f, 1024 * 8.f);
+  camera_3d_free_floating_update(cam);
+}
+
+void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
+{
+  cam.position += (vec3f)(cam.view.TransformVector3(dir));
+}
+
+void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
+{
+  cam.direction = (matrix::RotationX(dir.x) * matrix::RotationZ(dir.y)).TransformVector3(cam.direction);
+}
+
+void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
+{
+  cam.direction = (matrix::RotationZ(dir.x) * matrix::RotationX(dir.y)).TransformVector3(vec3f(0, 1.f, 0));
+}
+
+void camera_3d_free_floating_update(camera_3d_free_floating &cam)
+{
+  cam.view = matrix::LookToRH(cam.position, cam.direction, vec3f(0, 0, 1));
+  cam.viewProjection = cam.view * cam.projection;
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,7 +139,8 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  render_setLookAt(vec3f(512, 512, 0), vec3f(-64, -64, 1024), vec3f(0, 0, 1));
+  camera_3d_free_floating_create(_Render.camera, vec3f(512, 512, 0), vec3f(1, 1, 1.f).Normalize(), vec2f(_Render.windowSize));
+  render_updateCamera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   // Create Erosion Buffer & Shader.
@@ -153,7 +206,7 @@ void render_startFrame(lsAppState *pAppState)
   _Render.frameRatio = (float_t)(now - _Render.lastFrameStartNs) / (1e9f / 60.f);
   _Render.lastFrameStartNs = now;
   _Render.windowSize = pAppState->windowSize;
-  
+
   SDL_GL_MakeCurrent(pAppState->pWindow, pAppState->glContext);
   glViewport(0, 0, (GLsizei)pAppState->windowSize.x, (GLsizei)pAppState->windowSize.y);
 
@@ -189,16 +242,6 @@ void render_destroy()
 
   vertexBuffer_destroy(&_Render.plane.buffer);
   shader_destroy(&_Render.plane.shader);
-}
-
-void render_setLookAt(const vec3f position, const vec3f from, const vec3f up)
-{
-  _Render.lookAt = position;
-  _Render.up = up.Normalize();
-
-  const matrix v = matrix::LookAtLH(vec(from), vec(_Render.lookAt), vec(_Render.up));
-  _Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf * 0.75f, vec2f(_Render.windowSize).AspectRatio(), 16, 1024 * 5);
-  //_Render.vp = v * matrix::PerspectiveFovLH(lsHALFPIf * 0.75f, vec2f(_Render.windowSize).AspectRatio(), 0.02f, 25.f);
 }
 
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin)
@@ -240,6 +283,37 @@ void render_drawTerrain(const uint32_t width)
       vertexBuffer_render(&_Render.terrain.buffer);
     }
   }
+}
+
+void render_updateCamera(lsAppState *pAppState)
+{
+  vec3f movementDir = vec3f(0);
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_W))
+    movementDir = vec3f(0, 1.f, 0);
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_A))
+    movementDir += vec3f(-1.f, 0, 0);
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_S))
+    movementDir += vec3f(0, -1.f, 0);
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_D))
+    movementDir += vec3f(1.f, 0, 0);
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_R))
+    movementDir += vec3f(0, 0, 1.f);
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_F))
+    movementDir += vec3f(0, 0, -1.f);
+
+  //camera_3d_free_floating_move(_Render.camera, movementDir);
+
+  vec2f rotationDir = (((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
+  camera_3d_free_floating_set_rotation(_Render.camera, -rotationDir);
+
+  camera_3d_free_floating_update(_Render.camera);
+  _Render.vp = _Render.camera.viewProjection;
 }
 
 //////////////////////////////////////////////////////////////////////////
