@@ -90,17 +90,17 @@ void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationX(dir.x) * matrix::RotationZ(dir.y)).TransformVector3(cam.direction);
+  cam.direction = (matrix::RotationZ(dir.x) * matrix::RotationX(dir.y)).TransformVector3(cam.direction);
 }
 
 void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationZ(dir.x) * matrix::RotationX(dir.y)).TransformVector3(vec3f(0, 1.f, 0));
+  cam.direction = (matrix::RotationZ(dir.x) * matrix::RotationX(dir.y)).TransformVector3(vec3f(0, 1, 0));
 }
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
 {
-  cam.view = matrix::LookToRH(cam.position, cam.direction, vec3f(0, 0, 1));
+  cam.view = matrix::LookToRH(cam.position, cam.direction, vec3f(0, 0, -1));
   cam.viewProjection = cam.view * cam.projection;
 }
 
@@ -139,7 +139,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  camera_3d_free_floating_create(_Render.camera, vec3f(512, 512, 0), vec3f(1, 1, 1.f).Normalize(), vec2f(_Render.windowSize));
+  camera_3d_free_floating_create(_Render.camera, vec3f(512, 512, 0), vec3f(1, 1, 1).Normalize(), vec2f(_Render.windowSize));
   render_updateCamera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
@@ -309,8 +309,8 @@ void render_updateCamera(lsAppState *pAppState)
 
   //camera_3d_free_floating_move(_Render.camera, movementDir);
 
-  vec2f rotationDir = (((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
-  camera_3d_free_floating_set_rotation(_Render.camera, -rotationDir);
+  vec2f rotationDir = -(((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
+  //camera_3d_free_floating_set_rotation(_Render.camera, rotationDir);
 
   camera_3d_free_floating_update(_Render.camera);
   _Render.vp = _Render.camera.viewProjection;
