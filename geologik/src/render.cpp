@@ -79,7 +79,7 @@ void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f po
   cam.position = position;
   cam.direction = direction;
 
-  cam.projection = matrix::PerspectiveFovRH(lsHALFPIf, windowSize.AspectRatio(), 0.001f, 1024 * 8.f);
+  cam.projection = matrix::PerspectiveFovRH(lsHALFPIf * 0.75f, windowSize.AspectRatio(), 0.001f, 1024 * 8.f);
   camera_3d_free_floating_update(cam);
 }
 
@@ -90,12 +90,12 @@ void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationZ(dir.x) * matrix::RotationX(dir.y)).TransformVector3(cam.direction);
+  cam.direction = (matrix::RotationX(dir.y) * matrix::RotationZ(dir.x)).TransformVector3(cam.direction);
 }
 
 void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationZ(dir.x) * matrix::RotationX(dir.y)).TransformVector3(vec3f(0, 1, 0));
+  cam.direction = (matrix::RotationX(dir.y) * matrix::RotationZ(dir.x)).TransformVector3(vec3f(0, 1, 0));
 }
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
