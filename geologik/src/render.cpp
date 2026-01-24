@@ -139,7 +139,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  camera_3d_free_floating_create(_Render.camera, vec3f(512, 512, 0), vec3f(1, 1, 1).Normalize(), vec2f(_Render.windowSize));
+  camera_3d_free_floating_create(_Render.camera, vec3f(1, 1, 0), vec3f(1, 1, 1).Normalize(), vec2f(_Render.windowSize));
   render_updateCamera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
@@ -309,8 +309,8 @@ void render_updateCamera(lsAppState *pAppState)
 
   //camera_3d_free_floating_move(_Render.camera, movementDir);
 
-  vec2f rotationDir = -(((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
-  //camera_3d_free_floating_set_rotation(_Render.camera, rotationDir);
+  vec2f rotationDir = (((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
+  camera_3d_free_floating_set_rotation(_Render.camera, rotationDir);
 
   camera_3d_free_floating_update(_Render.camera);
   _Render.vp = _Render.camera.viewProjection;
