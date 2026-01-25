@@ -39,6 +39,7 @@ struct camera_3d_free_floating : camera_3d
 void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f position, const vec3f direction, const vec2f windowSize);
 void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir);
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir);
+void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir);
 void camera_3d_free_floating_update(camera_3d_free_floating &cam);
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +86,8 @@ void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f po
 
 void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 {
-  cam.position += (vec3f)(cam.view.TransformVector3(dir));
+  const vec3f v = (vec3f)(cam.view.TransformVector3(dir));
+  cam.position += v;
 }
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
@@ -307,7 +309,8 @@ void render_updateCamera(lsAppState *pAppState)
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_F))
     movementDir += vec3f(0, 0, -1.f);
 
-  //camera_3d_free_floating_move(_Render.camera, movementDir);
+  if (movementDir != vec3f(0))
+    camera_3d_free_floating_move(_Render.camera, movementDir);
 
   vec2f rotationDir = (((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
   camera_3d_free_floating_set_rotation(_Render.camera, rotationDir);
