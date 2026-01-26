@@ -86,18 +86,24 @@ void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f po
 
 void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 {
-  const vec3f v = (vec3f)(cam.view.TransformVector3(dir));
+  matrix localView = matrix::LookAtLH(vec3f(), cam.direction, vec3f(0, 0, -1));
+  const vec3f v = (vec3f)(localView.TransformVector3(dir));
   cam.position += v;
+
+  if (v.LengthSquared() > 0.1f)
+    print("move: ", dir, " -> ", v, "\n");
 }
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationX(dir.y) * matrix::RotationZ(dir.x)).TransformVector3(cam.direction);
+  cam.direction = (matrix::RotationRollPitchYaw(dir.y, dir.x, 0)).TransformVector3(cam.direction);
 }
 
 void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationX(dir.y) * matrix::RotationZ(dir.x)).TransformVector3(vec3f(0, 1, 0));
+  cam.direction = (matrix::RotationRollPitchYaw(dir.y, 0, dir.x)).TransformVector3(vec3f(0, 1, 0));
+  cam.direction = vec3f(lsSin(-dir.x * 0.5f), lsCos(-dir.x * 0.5f * dir.y), lsSin(dir.y));
+  print("rot: ", dir, " -> ", cam.direction, "\n");
 }
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
@@ -303,14 +309,16 @@ void render_updateCamera(lsAppState *pAppState)
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_D))
     movementDir += vec3f(1.f, 0, 0);
 
-  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_R))
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_E))
     movementDir += vec3f(0, 0, 1.f);
 
-  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_F))
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_X))
     movementDir += vec3f(0, 0, -1.f);
 
-  if (movementDir != vec3f(0))
-    camera_3d_free_floating_move(_Render.camera, movementDir);
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_LSHIFT))
+    movementDir *= 10;
+
+  camera_3d_free_floating_move(_Render.camera, movementDir);
 
   vec2f rotationDir = (((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
   camera_3d_free_floating_set_rotation(_Render.camera, rotationDir);
