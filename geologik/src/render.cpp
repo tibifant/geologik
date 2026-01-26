@@ -64,6 +64,8 @@ static struct
     vertexBuffer<vb_attribute_float<2, _Attrib_Pos>> buffer;
   } plane;
 
+  framebuffer framBuffer;
+
   pool<texture> textures;
   camera_3d_free_floating camera;
   matrix vp;
@@ -86,24 +88,18 @@ void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f po
 
 void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 {
-  matrix localView = matrix::LookAtLH(vec3f(), cam.direction, vec3f(0, 0, -1));
-  const vec3f v = (vec3f)(localView.TransformVector3(dir));
-  cam.position += v;
-
-  if (v.LengthSquared() > 0.1f)
-    print("move: ", dir, " -> ", v, "\n");
+  const matrix localView = matrix::LookAtRH(vec3f(), cam.direction, vec3f(0, 0, 1)).Inverse(); // tranforming view space to world space
+  cam.position += (vec3f)(localView.TransformVector3(-dir.xzy())); // .xzy to match view space
 }
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationRollPitchYaw(dir.y, dir.x, 0)).TransformVector3(cam.direction);
+  cam.direction = (matrix::RotationRollPitchYaw(dir.y, dir.x, 0)).TransformVector3(cam.direction); // Probably incorrect
 }
 
 void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = (matrix::RotationRollPitchYaw(dir.y, 0, dir.x)).TransformVector3(vec3f(0, 1, 0));
-  cam.direction = vec3f(lsSin(-dir.x * 0.5f), lsCos(-dir.x * 0.5f * dir.y), lsSin(dir.y));
-  print("rot: ", dir, " -> ", cam.direction, "\n");
+  cam.direction = vec3f(lsSin(-dir.x), lsCos(-dir.x) * lsCos(dir.y), lsSin(dir.y));
 }
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
