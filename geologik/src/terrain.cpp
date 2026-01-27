@@ -48,7 +48,7 @@ lsResult terrain_generate(terrain *pTerrain)
   uint16_t *pNoise = nullptr;
   LS_ERROR_CHECK(lsAllocZero(&pNoise, pTerrain->width * pTerrain->width));
 
-  for (size_t tt = 6; tt < tt_bedrock; tt++)
+  for (size_t tt = 0; tt < tt_bedrock; tt++)
   {
     generate_noise(pNoise, pTerrain->width);
   
