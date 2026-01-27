@@ -64,7 +64,7 @@ static struct
     vertexBuffer<vb_attribute_float<2, _Attrib_Pos>> buffer;
   } plane;
 
-  framebuffer framBuffer;
+  framebuffer frameBuffer;
 
   pool<texture> textures;
   camera_3d_free_floating camera;
@@ -147,6 +147,8 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   render_updateCamera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
+  framebuffer_create(&_Render.frameBuffer, _Render.windowSize, 1, true); // TODO bind, blit, unbind...
+
   // Create Erosion Buffer & Shader.
   {
     terrain t;
@@ -214,6 +216,8 @@ void render_startFrame(lsAppState *pAppState)
   SDL_GL_MakeCurrent(pAppState->pWindow, pAppState->glContext);
   glViewport(0, 0, (GLsizei)pAppState->windowSize.x, (GLsizei)pAppState->windowSize.y);
 
+  framebuffer_bind(&_Render.frameBuffer);
+
   render_clearColor(vec4f(0.5f, 0.7f, 0.9f, 1));
   render_clearDepth();
 
@@ -227,6 +231,7 @@ void render_endFrame(lsAppState *pAppState)
   (void)pAppState;
 
   framebuffer_unbind();
+  framebuffer_blitToScreen(&_Render.frameBuffer, _Render.windowSize);
 
   render_setDepthTestEnabled(false);
 }
