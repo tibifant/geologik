@@ -299,13 +299,13 @@ void render_updateCamera(lsAppState *pAppState)
   vec3f movementDir = vec3f(0);
 
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_W))
-    movementDir = vec3f(0, 1.f, 0);
+    movementDir = vec3f(0, -1.f, 0);
 
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_A))
     movementDir += vec3f(-1.f, 0, 0);
 
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_S))
-    movementDir += vec3f(0, -1.f, 0);
+    movementDir += vec3f(0, 1.f, 0);
 
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_D))
     movementDir += vec3f(1.f, 0, 0);
@@ -319,10 +319,10 @@ void render_updateCamera(lsAppState *pAppState)
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_LSHIFT))
     movementDir *= 10;
 
-  camera_3d_free_floating_move(_Render.camera, movementDir);
+  camera_3d_free_floating_move(_Render.camera, -movementDir);
 
   vec2f rotationDir = (((vec2f)(pAppState->mousePos) - vec2f(pAppState->windowSize) * 0.5) / vec2f(pAppState->windowSize)) * vec2f(lsTWOPIf, lsPIf);
-  camera_3d_free_floating_set_rotation(_Render.camera, rotationDir);
+  camera_3d_free_floating_set_rotation(_Render.camera, -rotationDir);
 
   camera_3d_free_floating_update(_Render.camera);
   _Render.vp = _Render.camera.viewProjection;
