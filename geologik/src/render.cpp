@@ -104,7 +104,7 @@ void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const ve
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
 {
-  cam.view = matrix::LookToRH(cam.position, cam.direction, vec3f(0, 0, -1));
+  cam.view = matrix::LookToRH(cam.position, cam.direction, vec3f(0, 0, 1));
   cam.viewProjection = cam.view * cam.projection;
 }
 
@@ -143,7 +143,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  camera_3d_free_floating_create(_Render.camera, vec3f(1, 1, 0), vec3f(1, 1, 1).Normalize(), vec2f(_Render.windowSize));
+  camera_3d_free_floating_create(_Render.camera, vec3f(1, 1, 500), vec3f(1, 1, -1).Normalize(), vec2f(_Render.windowSize));
   render_updateCamera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
