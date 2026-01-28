@@ -15,7 +15,7 @@ epilogue:
 void generate_sin_cos(terrain *pTerrain)
 {
   lsAssert(pTerrain != nullptr);
-  
+
   size_t i = 0;
 
   for (size_t y = 0; y < pTerrain->width; y++)
@@ -32,39 +32,88 @@ void generate_sin_cos(terrain *pTerrain)
   }
 }
 
-//void terrain_generate_layer(terrain *pTerrain, const terrain_type layer, const uint16_t min, const uint16_t max)
-//{
-//  
-//}
-
 lsResult terrain_generate(terrain *pTerrain)
 {
   lsResult result = lsR_Success;
 
   lsAssert(pTerrain != nullptr);
 
-  //generate_sin_cos(pTerrain);
+  constexpr int32_t MinHeight[tt_bedrock] = {
+    0, // tt_snow 
+    -10000, // tt_water 
+    -10, // tt_grass 
+    -100, // tt_soil 
+    -100, // tt_sand 
+    -16000, // tt_limestone 
+    100 // tt_stone 
+  };
+
+  constexpr int32_t MaxHeight[tt_bedrock] = {
+    100, // tt_snow
+    5000, // tt_water
+    10, // tt_grass
+    100, // tt_soil
+    100, // tt_sand
+    16000, // tt_limestone
+    65536 // tt_stone
+  };
+
+  const size_t terrainSize = pTerrain->width * pTerrain->width;
 
   uint16_t *pNoise = nullptr;
-  LS_ERROR_CHECK(lsAllocZero(&pNoise, pTerrain->width * pTerrain->width));
+  uint16_t *pTotalHeight = nullptr;
 
-  for (size_t tt = 0; tt < tt_bedrock; tt++)
+  LS_ERROR_CHECK(lsAllocZero(&pNoise, terrainSize));
+  LS_ERROR_CHECK(lsAllocZero(&pTotalHeight, terrainSize));
+
+  for (int8_t tt = tt_stone; tt >= 0; tt--)
   {
+    if (tt == tt_water)
+      continue;
+
     generate_noise(pNoise, pTerrain->width);
-  
+
     FILE *pFile = fopen(sformat("C:\\data\\noise", tt, ".raw"), "wb");
-    fwrite(pNoise, sizeof(uint16_t), pTerrain->width * pTerrain->width, pFile);
+    fwrite(pNoise, sizeof(uint16_t), terrainSize, pFile);
     fflush(pFile);
     fclose(pFile);
-  
-    for (size_t i = 0; i < pTerrain->width * pTerrain->width; i++)
-      pTerrain->pTiles[i].layerHeights[tt] = pNoise[i];
+
+    for (size_t i = 0; i < terrainSize; i++)
+    {
+      //if (tt == tt_sand && pTerrain->pTiles[i].layerHeights[tt_limestone] == 0)
+      //{
+      //  pTerrain->pTiles[i].layerHeights[tt] = 0;
+      //  continue;
+      //}
+      if (tt == tt_soil && pTerrain->pTiles[i].layerHeights[tt_sand] > 0)
+      {
+        pTerrain->pTiles[i].layerHeights[tt] = 0;
+        continue;
+      }
+      else if (tt == tt_grass && pTerrain->pTiles[i].layerHeights[tt_soil] < 5)
+      {
+        pTerrain->pTiles[i].layerHeights[tt] = 0;
+        continue;
+      }
+      else if (tt == tt_snow && pTotalHeight[i] < 40000)
+      {
+        pTerrain->pTiles[i].layerHeights[tt] = 0;
+        continue;
+      }
+
+      const int32_t mappedVal = (int32_t)((float_t)(pNoise[i]) / lsMaxValue<uint16_t>() * (MaxHeight[tt] + lsAbs(MinHeight[tt])) - lsAbs(MinHeight[tt]));
+      const uint16_t val = (uint16_t)(lsClamp(mappedVal, int32_t(0), (int32_t)(lsMaxValue<uint16_t>())));
+
+      pTerrain->pTiles[i].layerHeights[tt] = val;
+
+      pTotalHeight[i] += val;
+    }
   }
-  
+
   lsFreePtr(&pNoise);
 
-  // TODO: set bedrock manually
-  //pTerrain->pTiles[i].layerHeights[tt_bedrock] = 8;
+  for (size_t i = 0; i < pTerrain->width * pTerrain->width; i++)
+    pTerrain->pTiles[i].layerHeights[tt_bedrock] = 8;
 
 epilogue:
   return result;
@@ -74,7 +123,7 @@ void terrain_destroy(terrain *pTerrain)
 {
   if (pTerrain == nullptr)
     return;
-  
+
   lsFreePtr(&pTerrain->pTiles);
 }
 

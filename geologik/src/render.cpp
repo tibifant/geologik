@@ -147,7 +147,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   render_updateCamera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
-  framebuffer_create(&_Render.frameBuffer, _Render.windowSize, 1, true); // TODO bind, blit, unbind...
+  framebuffer_create(&_Render.frameBuffer, _Render.windowSize, 1, true);
 
   // Create Erosion Buffer & Shader.
   {
