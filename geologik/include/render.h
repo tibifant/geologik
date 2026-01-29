@@ -16,7 +16,7 @@ void render_update_camera(lsAppState *pAppState);
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
 
 #ifdef _DEBUG
-lsResult render_update_shader();
+lsResult render_reload_shader();
 #endif
 
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);

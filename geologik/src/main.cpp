@@ -46,7 +46,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       {
         print("Reloading shader...\n");
         system("xcopy /Q /E /Y /I ..\\geologik\\assets\\shaders shaders"); // horrible way to copy shaders over to builds/bin if we haven't recompiled.
-        LS_ERROR_CHECK(render_update_shader()); 
+        LS_ERROR_CHECK(render_reload_shader()); 
       }
 #endif
 

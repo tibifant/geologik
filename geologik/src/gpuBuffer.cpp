@@ -94,7 +94,7 @@ epilogue:
   return result;
 }
 
-void gpuBuffer_detroy(gpu_buffer *pBuffer)
+void gpuBuffer_destroy(gpu_buffer *pBuffer)
 {
   if (pBuffer == nullptr || !pBuffer->bufferId)
     return;

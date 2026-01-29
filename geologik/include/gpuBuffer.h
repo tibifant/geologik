@@ -26,7 +26,7 @@ struct gpu_buffer
 
 lsResult gpuBuffer_create(gpu_buffer *pBuffer);
 lsResult gpuBuffer_bind(const gpu_buffer *pBuffer);
-void gpuBuffer_detroy(gpu_buffer *pBuffer);
+void gpuBuffer_destroy(gpu_buffer *pBuffer);
 
 lsResult gpuBuffer_set(gpu_buffer *pBuffer, const uint8_t *pData /*nullptr valid for intialization*/, const size_t size, const uint32_t bindingPoint = 0);
 lsResult gpuBuffer_get_data(const gpu_buffer *pBuffer, _Out_ uint8_t **ppData, _Out_ size_t *pSize);

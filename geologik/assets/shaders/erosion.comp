@@ -2,12 +2,27 @@
 
 // 1x pro zeile
 
-layout(binding = 0, std430) buffer b 
+layout(location = 0) in uint index;
+
+struct tile
 {
-  uint data[];
+  uint heights[4];
 };
+
+layout(binding = 0, std430) buffer data 
+{
+  tile tiles[];
+};
+
+uniform uint width;
+
+
 
 void main()
 {
+  // add water
 
+  // take terrain with you / away
+
+  // go to lowest neighbour (atomic adds)
 }

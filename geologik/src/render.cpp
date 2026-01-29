@@ -161,7 +161,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     terrain_destroy(&t);
 
-    //LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.computeShader, "shaders/erosion.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.computeShader, "shaders/erosion.comp"));
   }
 
   // Create Terrain.
@@ -246,7 +246,7 @@ void render_destroy()
   vertexBuffer_destroy(&_Render.terrain.buffer);
   shader_destroy(&_Render.terrain.renderShader);
 
-  gpuBuffer_detroy(&_Render.erosion.gpuBuffer);
+  gpuBuffer_destroy(&_Render.erosion.gpuBuffer);
   shader_destroy(&_Render.erosion.computeShader);
 
   vertexBuffer_destroy(&_Render.plane.buffer);
@@ -329,7 +329,7 @@ void render_update_camera(lsAppState *pAppState)
 }
 
 #ifdef _DEBUG
-lsResult render_update_shader()
+lsResult render_reload_shader()
 {
   return shader_reload(&_Render.terrain.renderShader);
 }
