@@ -43,9 +43,9 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
 
 void shader_bind(shader *pShader);
 
-//#ifdef _DEBUG
-//lsResult shader_reload(shader *pShader);
-//#endif
+#ifdef _DEBUG
+lsResult shader_reload(shader *pShader);
+#endif
 
 void shader_destroy(shader *pShader);
 

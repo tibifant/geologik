@@ -12,8 +12,12 @@ void render_startFrame(lsAppState *pAppState);
 void render_endFrame(lsAppState *pAppState);
 void render_destroy();
 
-void render_updateCamera(lsAppState *pAppState);
+void render_update_camera(lsAppState *pAppState);
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
+
+#ifdef _DEBUG
+lsResult render_update_shader();
+#endif
 
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw2DQuad(const matrix &model, const render_textureId textureIndex);

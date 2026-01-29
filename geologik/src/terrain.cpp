@@ -39,9 +39,9 @@ lsResult terrain_generate(terrain *pTerrain)
   lsAssert(pTerrain != nullptr);
 
   constexpr int32_t MinHeight[tt_bedrock] = {
-    0, // tt_snow 
+    -100, // tt_snow 
     -10000, // tt_water 
-    -10, // tt_grass 
+    0, // tt_grass
     -100, // tt_soil 
     -100, // tt_sand 
     -16000, // tt_limestone 
@@ -80,17 +80,17 @@ lsResult terrain_generate(terrain *pTerrain)
 
     for (size_t i = 0; i < terrainSize; i++)
     {
-      //if (tt == tt_sand && pTerrain->pTiles[i].layerHeights[tt_limestone] == 0)
-      //{
-      //  pTerrain->pTiles[i].layerHeights[tt] = 0;
-      //  continue;
-      //}
+      if (tt == tt_sand && pTerrain->pTiles[i].layerHeights[tt_limestone] == 0)
+      {
+        pTerrain->pTiles[i].layerHeights[tt] = 0;
+        continue;
+      }
       if (tt == tt_soil && pTerrain->pTiles[i].layerHeights[tt_sand] > 0)
       {
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
       }
-      else if (tt == tt_grass && pTerrain->pTiles[i].layerHeights[tt_soil] < 5)
+      else if (tt == tt_grass && pTerrain->pTiles[i].layerHeights[tt_soil] < 5 && pTotalHeight[i] > 50000)
       {
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;

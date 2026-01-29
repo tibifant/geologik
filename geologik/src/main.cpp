@@ -41,10 +41,19 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
     {
       const int64_t before = lsGetCurrentTimeNs();
 
+#ifdef _DEBUG
+      if (lsKeyboardState_IsKeyDown(&_AppState.keyboardState, SDL_SCANCODE_F8))
+      {
+        print("Reloading shader...\n");
+        system("xcopy /Q /E /Y /I ..\\geologik\\assets\\shaders shaders"); // horrible way to copy shaders over to builds/bin if we haven't recompiled.
+        LS_ERROR_CHECK(render_update_shader()); 
+      }
+#endif
+
       {
         render_startFrame(&_AppState);
         render_drawTerrain(width);
-        render_updateCamera(&_AppState);
+        render_update_camera(&_AppState);
         render_endFrame(&_AppState);
       }
 
@@ -78,7 +87,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
 
   goto epilogue;
 epilogue:
-  
+
   render_destroy();
 
   return result;

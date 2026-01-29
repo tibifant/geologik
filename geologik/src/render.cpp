@@ -143,8 +143,8 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   lsResult result = lsR_Success;
 
   _Render.windowSize = pAppState->windowSize;
-  camera_3d_free_floating_create(_Render.camera, vec3f(1, 1, 500), vec3f(1, 1, -1).Normalize(), vec2f(_Render.windowSize));
-  render_updateCamera(pAppState);
+  camera_3d_free_floating_create(_Render.camera, vec3f(1, 1, 800), vec3f(1, 1, -1).Normalize(), vec2f(_Render.windowSize));
+  render_update_camera(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   framebuffer_create(&_Render.frameBuffer, _Render.windowSize, 1, true);
@@ -294,7 +294,7 @@ void render_drawTerrain(const uint32_t width)
   }
 }
 
-void render_updateCamera(lsAppState *pAppState)
+void render_update_camera(lsAppState *pAppState)
 {
   vec3f movementDir = vec3f(0);
 
@@ -327,6 +327,13 @@ void render_updateCamera(lsAppState *pAppState)
   camera_3d_free_floating_update(_Render.camera);
   _Render.vp = _Render.camera.viewProjection;
 }
+
+#ifdef _DEBUG
+lsResult render_update_shader()
+{
+  return shader_reload(&_Render.terrain.renderShader);
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 

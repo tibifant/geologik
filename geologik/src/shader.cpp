@@ -144,6 +144,23 @@ epilogue:
 
   return result;
 }
+
+lsResult shader_reload(shader *pShader)
+{
+  lsResult result = lsR_Success;
+
+  LS_ERROR_IF(pShader == nullptr, lsR_ArgumentNull);
+
+  if (pShader->type == st_vertex_fragment)
+    return shader_reload_vertex_fragment(pShader);
+  else if (pShader->type == st_compute)
+    return shader_reload_compute(pShader);
+  else
+    lsFail(); // not implemented
+
+epilogue:
+  return result;
+}
 #endif
 
 void shader_destroy(shader *pShader)
