@@ -53,6 +53,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       {
         render_startFrame(&_AppState);
         render_drawTerrain(width);
+        render_computeTerrain(width);
         render_update_camera(&_AppState);
         render_endFrame(&_AppState);
       }

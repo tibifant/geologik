@@ -12,20 +12,22 @@ void render_startFrame(lsAppState *pAppState);
 void render_endFrame(lsAppState *pAppState);
 void render_destroy();
 
-void render_update_camera(lsAppState *pAppState);
 void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
-
-#ifdef _DEBUG
-lsResult render_reload_shader();
-#endif
 
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw2DQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw3DQuad(const matrix &model, const render_textureId textureIndex);
 void render_drawTerrain(const uint32_t width);
 
-void render_flushRenderQueue();
+void render_computeTerrain(const uint32_t width);
 
+void render_update_camera(lsAppState *pAppState);
+
+#ifdef _DEBUG
+lsResult render_reload_shader();
+#endif
+
+void render_flushRenderQueue();
 void render_finalize();
 
 void render_clearColor(const vec4f color);

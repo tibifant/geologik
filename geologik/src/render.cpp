@@ -294,6 +294,14 @@ void render_drawTerrain(const uint32_t width)
   }
 }
 
+void render_computeTerrain(const uint32_t width)
+{
+  shader_bind(&_Render.erosion.computeShader);
+  shader_setUniform(&_Render.erosion.computeShader, "width", width);
+  
+  shader_dispatch_compute(&_Render.erosion.computeShader, width, 0, 0);
+}
+
 void render_update_camera(lsAppState *pAppState)
 {
   vec3f movementDir = vec3f(0);

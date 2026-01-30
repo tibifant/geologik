@@ -41,6 +41,7 @@ lsResult shader_create_compute(_Out_ shader *pShader, const char *computeSource)
 lsResult shader_createFromFile_vertex_fragment(_Out_ shader *pShader, const char *vertexPath, const char *fragmentPath);
 lsResult shader_createFromFile_compute(shader *pShader, const char *computePath);
 
+void shader_dispatch_compute(const shader *pShader, const uint32_t workgroupCountX, const uint32_t workgroupCountY, const uint32_t workgroupCountZ);
 void shader_bind(shader *pShader);
 
 #ifdef _DEBUG

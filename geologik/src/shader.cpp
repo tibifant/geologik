@@ -85,6 +85,14 @@ epilogue:
   return result;
 }
 
+void shader_dispatch_compute(const shader *pShader, const uint32_t workgroupCountX, const uint32_t workgroupCountY, const uint32_t workgroupCountZ)
+{
+  lsAssert(pShader != nullptr);
+  lsAssert(pShader->initialized);
+  
+  glDispatchCompute(workgroupCountX, workgroupCountY, workgroupCountZ);
+}
+
 void shader_bind(shader *pShader)
 {
   lsAssert(pShader != nullptr);
@@ -383,8 +391,8 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   pShader->type = st_compute;
 
   LS_ERROR_CHECK(shader_allocCleanSource_internal(computeSource, &cleanSource));
-
-  shaderHandle = glCreateShader(GL_VERTEX_SHADER);
+  
+  shaderHandle = glCreateShader(GL_COMPUTE_SHADER);
   glShaderSource(shaderHandle, 1, &computeSource, NULL);
   glCompileShader(shaderHandle);
 
