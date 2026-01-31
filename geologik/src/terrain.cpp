@@ -41,7 +41,7 @@ lsResult terrain_generate(terrain *pTerrain)
   constexpr int32_t MinHeight[tt_bedrock] = {
     -100, // tt_snow 
     -10000, // tt_water 
-    0, // tt_grass
+    -10, // tt_grass
     -100, // tt_soil 
     -100, // tt_sand 
     -16000, // tt_limestone 

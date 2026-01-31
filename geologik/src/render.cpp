@@ -49,7 +49,8 @@ static struct
   struct
   {
     shader computeShader;
-    gpu_buffer gpuBuffer;
+    gpu_buffer gpuBuffer[2];
+    bool readA = true;
   } erosion;
 
   struct
@@ -156,8 +157,10 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     LS_ERROR_CHECK(terrain_init(&t, (uint16_t)terrainWidth));
     LS_ERROR_CHECK(terrain_generate(&t));
 
-    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer));
-    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.width));
+    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer[0]));
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer[0], t.pTiles, t.width * t.width));
+    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer[1]));
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer[1], t.pTiles, t.width * t.width));
 
     terrain_destroy(&t);
 

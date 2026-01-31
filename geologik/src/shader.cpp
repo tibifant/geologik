@@ -418,7 +418,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   glAttachShader(pShader->shaderProgram, shaderHandle);
 
   glLinkProgram(pShader->shaderProgram);
-
+  
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
 
   if (status != GL_TRUE)
