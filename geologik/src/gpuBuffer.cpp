@@ -4,13 +4,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-lsResult gpuBuffer_create(gpu_buffer *pBuffer)
+lsResult gpuBuffer_create(gpu_buffer *pBuffer, const gpu_buffer_acces_type accessType)
 {
   lsResult result = lsR_Success;
 
   LS_ERROR_IF(pBuffer == nullptr, lsR_ArgumentNull);
 
   glCreateBuffers(1, &pBuffer->bufferId);
+  pBuffer->accessType = accessType;
 
 epilogue:
   return result;

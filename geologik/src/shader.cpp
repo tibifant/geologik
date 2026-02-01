@@ -425,7 +425,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   {
     char buffer[1024];
     glGetProgramInfoLog(pShader->shaderProgram, sizeof(buffer), nullptr, buffer);
-
+    
     puts("Error linking shader.\nThe following error occured:");
     puts(buffer);
 

@@ -49,7 +49,7 @@ static struct
   struct
   {
     shader computeShader;
-    gpu_buffer gpuBuffer[2];
+    gpu_buffer gpuBuffer; // [2] ;
     bool readA = true;
   } erosion;
 
@@ -157,10 +157,10 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     LS_ERROR_CHECK(terrain_init(&t, (uint16_t)terrainWidth));
     LS_ERROR_CHECK(terrain_generate(&t));
 
-    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer[0]));
-    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer[0], t.pTiles, t.width * t.width));
-    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer[1]));
-    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer[1], t.pTiles, t.width * t.width));
+    LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer, gbat_read_only));
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.width));
+    //LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer[1]));
+    //LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer[1], t.pTiles, t.width * t.width));
 
     terrain_destroy(&t);
 
@@ -283,6 +283,9 @@ void render_draw3DQuad(const matrix &model, const render_textureId textureIndex)
 
 void render_drawTerrain(const uint32_t width)
 {
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_FRONT);
+
   shader_bind(&_Render.terrain.renderShader);
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
@@ -301,8 +304,8 @@ void render_computeTerrain(const uint32_t width)
 {
   shader_bind(&_Render.erosion.computeShader);
   shader_setUniform(&_Render.erosion.computeShader, "width", width);
-  
-  shader_dispatch_compute(&_Render.erosion.computeShader, width, 0, 0);
+
+  shader_dispatch_compute(&_Render.erosion.computeShader, width, 1, 1);
 }
 
 void render_update_camera(lsAppState *pAppState)

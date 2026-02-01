@@ -24,7 +24,7 @@ struct gpu_buffer
 
 //////////////////////////////////////////////////////////////////////////
 
-lsResult gpuBuffer_create(gpu_buffer *pBuffer);
+lsResult gpuBuffer_create(gpu_buffer *pBuffer, const gpu_buffer_acces_type accessType);
 lsResult gpuBuffer_bind(const gpu_buffer *pBuffer);
 void gpuBuffer_destroy(gpu_buffer *pBuffer);
 

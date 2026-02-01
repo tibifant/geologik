@@ -30,7 +30,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
 
   LS_ERROR_CHECK(render_init(&_AppState, width));
-
+  
   {
     const float_t updateTimeMs = 1000.0f / 120.f;
     size_t frameCount = 0;
@@ -52,12 +52,12 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
 
       {
         render_startFrame(&_AppState);
-        render_drawTerrain(width);
         render_computeTerrain(width);
+        render_drawTerrain(width);
         render_update_camera(&_AppState);
         render_endFrame(&_AppState);
       }
-
+      
       const int64_t afterCPU = lsGetCurrentTimeNs();
 
       render_finalize();
