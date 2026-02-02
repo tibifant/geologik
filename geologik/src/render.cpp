@@ -48,8 +48,9 @@ static struct
 {
   struct
   {
-    shader computeShader;
-    gpu_buffer gpuBuffer; // [2] ;
+    shader erosionShader;
+    shader snowmeltShader;
+    gpu_buffer gpuBuffer;
     bool readA = true;
   } erosion;
 
@@ -159,12 +160,11 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer, gbat_read_only));
     LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.width));
-    //LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer[1]));
-    //LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer[1], t.pTiles, t.width * t.width));
 
     terrain_destroy(&t);
 
-    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.computeShader, "shaders/erosion.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.snowmeltShader, "shaders/snowmelt.comp"));
   }
 
   // Create Terrain.
@@ -250,7 +250,7 @@ void render_destroy()
   shader_destroy(&_Render.terrain.renderShader);
 
   gpuBuffer_destroy(&_Render.erosion.gpuBuffer);
-  shader_destroy(&_Render.erosion.computeShader);
+  shader_destroy(&_Render.erosion.erosionShader);
 
   vertexBuffer_destroy(&_Render.plane.buffer);
   shader_destroy(&_Render.plane.shader);
@@ -304,10 +304,10 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 {
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M))
   {
-    shader_bind(&_Render.erosion.computeShader);
-    shader_setUniform(&_Render.erosion.computeShader, "width", width);
+    shader_bind(&_Render.erosion.snowmeltShader);
+    shader_setUniform(&_Render.erosion.snowmeltShader, "width", width);
 
-    shader_dispatch_compute(&_Render.erosion.computeShader, width, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.snowmeltShader, width, 1, 1);
   }
 }
 

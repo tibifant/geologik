@@ -1,0 +1,50 @@
+#version 430 core
+
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+// 1x pro zeile
+
+struct tile
+{
+  uint heights[4];
+};
+
+layout(binding = 0, std430) buffer data 
+{
+  tile tiles[];
+};
+
+uniform uint width;
+
+void main()
+{
+  uint lineIdx = gl_GlobalInvocationID.x;
+  uint mask = 0xFFFF;
+
+  for (uint i = lineIdx * width; i < (lineIdx + 1) * width; i++)
+  {
+    //uint snowHeight = tiles[i].heights[0] >> 16;
+    //uint meltAmount = 1 * snowHeight;
+    //uint subVal = ((~meltAmount + 1) << 16);
+    //uint addVal = meltAmount;
+    //uint val = subVal | addVal;
+    //atomicAdd(tiles[i].heights[0], val);
+
+    tile currentTile = tiles[i]; 
+    uint snowHeight = currentTile.heights[0] & mask;
+
+    if (snowHeight > 0)
+    {
+      uint meltAmount = max(uint(snowHeight * 0.02), 1); // max snowheight = 100
+      uint waterHeight = currentTile.heights[0] >> 16;
+      
+      uint loVal = ~meltAmount + 1;
+      uint hiVal = (meltAmount - 1) << 16;
+      uint val = hiVal | (loVal & mask);
+      atomicAdd(tiles[i].heights[0], val);
+    }
+  }
+
+  // take terrain with you / away (atomic adds)
+
+  // add water to lowest neighbour (atomic adds)
+}

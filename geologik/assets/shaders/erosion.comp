@@ -15,36 +15,37 @@ layout(binding = 0, std430) buffer data
 
 uniform uint width;
 
+uint mask = 0xFFFF;
+
+void addTerrain(uint index, uint amount, uint terrainType)
+{
+  uint val = amount;
+
+  if ((terrainType & 1) == 0)
+    val <<= 16;
+  
+  // todo max val at 2^16
+  atomicAdd(tiles[index].heights[terrainType / 2], val);
+}
+
+void removeTerrain(uint index, uint amount, uint terrainType)
+{
+  uint val = (~amount + 1);
+
+  if ((terrainType & 1) == 0)
+    val <<= 16;
+
+  // todo clamp with 0
+  atomicAdd(tiles[index].heights[terrainType / 2], val);
+}
+
 void main()
 {
   uint lineIdx = gl_GlobalInvocationID.x;
-  uint mask = 0xFFFF;
 
+  // add water to lowest neighbour (atomic adds) // change per frame which neighbour to choose if all are the same height
   for (uint i = lineIdx * width; i < (lineIdx + 1) * width; i++)
   {
-    //uint snowHeight = tiles[i].heights[0] >> 16;
-    //uint meltAmount = 1 * snowHeight;
-    //uint subVal = ((~meltAmount + 1) << 16);
-    //uint addVal = meltAmount;
-    //uint val = subVal | addVal;
-    //atomicAdd(tiles[i].heights[0], val);
-
-    tile currentTile = tiles[i]; 
-    uint snowHeight = currentTile.heights[0] & mask;
-
-    if (snowHeight > 0)
-    {
-      uint meltAmount = max(uint(snowHeight * 0.02), 1); // max snowheight = 100
-      uint waterHeight = currentTile.heights[0] >> 16;
-      
-      uint loVal = ~meltAmount + 1;
-      uint hiVal = (meltAmount - 1) << 16;
-      uint val = hiVal | (loVal & mask);
-      atomicAdd(tiles[i].heights[0], val);
-    }
+    
   }
-
-  // take terrain with you / away (atomic adds)
-
-  // add water to lowest neighbour (atomic adds)
 }
