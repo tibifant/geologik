@@ -41,7 +41,7 @@ lsResult terrain_generate(terrain *pTerrain)
   constexpr int32_t MinHeight[tt_bedrock] = {
     -100, // tt_snow 
     -1000, // tt_water 
-    -10, // tt_grass
+    0, // tt_grass
     -100, // tt_soil 
     -100, // tt_sand 
     -16000, // tt_limestone 
@@ -65,11 +65,11 @@ lsResult terrain_generate(terrain *pTerrain)
 
   LS_ERROR_CHECK(lsAllocZero(&pNoise, terrainSize));
   LS_ERROR_CHECK(lsAllocZero(&pTotalHeight, terrainSize));
-
+  
   for (int8_t tt = tt_stone; tt >= 0; tt--)
   {
-    //if (tt == tt_water)
-      //continue;
+    if (tt == tt_water)
+      continue;
 
     generate_noise(pNoise, pTerrain->width);
 
@@ -90,7 +90,7 @@ lsResult terrain_generate(terrain *pTerrain)
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
       }
-      else if (tt == tt_grass && pTerrain->pTiles[i].layerHeights[tt_soil] < 5 && pTotalHeight[i] > 50000)
+      else if (tt == tt_grass && (pTerrain->pTiles[i].layerHeights[tt_soil] < 5 || pTotalHeight[i] > 50000))
       {
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
@@ -103,7 +103,7 @@ lsResult terrain_generate(terrain *pTerrain)
 
       const int32_t mappedVal = (int32_t)((float_t)(pNoise[i]) / lsMaxValue<uint16_t>() * (MaxHeight[tt] + lsAbs(MinHeight[tt])) - lsAbs(MinHeight[tt]));
       const uint16_t val = (uint16_t)(lsClamp(mappedVal, int32_t(0), (int32_t)(lsMaxValue<uint16_t>())));
-      
+
       pTerrain->pTiles[i].layerHeights[tt] = val;
 
       pTotalHeight[i] += val;

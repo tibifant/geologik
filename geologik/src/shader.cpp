@@ -63,11 +63,11 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
   lsResult result = lsR_Success;
 
   char *computeSource = nullptr;
-
+  
   LS_ERROR_IF(pShader == nullptr || computePath == nullptr, lsR_ArgumentNull);
 
   pShader->type = st_compute;
-
+  
   {
     size_t bytes = 0; // unused.
     LS_ERROR_CHECK(lsReadFile(computePath, &computeSource, &bytes));
@@ -78,10 +78,10 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
 #ifdef _DEBUG
   pShader->computePath = _strdup(computePath);
 #endif
-
+  
 epilogue:
   lsFreePtr(&computeSource);
-
+  
   return result;
 }
 
@@ -322,7 +322,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   
   status = GL_TRUE;
   glGetShaderiv(fragmentShaderHandle, GL_COMPILE_STATUS, &status);
-
+  
   if (status != GL_TRUE)
   {
     char buffer[1024];
@@ -414,7 +414,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
     pShader->shaderProgram = glCreateProgram();
   else
     glUseProgram(pShader->shaderProgram);
-
+  
   glAttachShader(pShader->shaderProgram, shaderHandle);
 
   glLinkProgram(pShader->shaderProgram);

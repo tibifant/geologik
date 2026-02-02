@@ -29,14 +29,17 @@ void main()
     //uint val = subVal | addVal;
     //atomicAdd(tiles[i].heights[0], val);
 
-    uint snowHeight = tiles[i].heights[0] & mask;
-    
+    tile currentTile = tiles[i]; 
+    uint snowHeight = currentTile.heights[0] & mask;
+
     if (snowHeight > 0)
     {
-      uint meltAmount = max(uint(snowHeight * 0.01), 1); // max snowheight = 100
-      uint hiVal = (meltAmount - 1) << 16;
+      uint meltAmount = max(uint(snowHeight * 0.02), 1); // max snowheight = 100
+      uint waterHeight = currentTile.heights[0] >> 16;
+      
       uint loVal = ~meltAmount + 1;
-      uint val = hiVal | loVal;
+      uint hiVal = (meltAmount - 1) << 16;
+      uint val = hiVal | (loVal & mask);
       atomicAdd(tiles[i].heights[0], val);
     }
   }

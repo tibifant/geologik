@@ -7,7 +7,6 @@ uniform uint width;
 uniform mat4x4 vp;
 
 out flat uint _index;
-out flat uint _height;
 
 struct tile
 {
@@ -34,7 +33,6 @@ void main ()
   }
 
   _index = idx;
-  _height = height;
   vec4 pos4 = vec4(vec2(pos), float(height) * 0.01, 1.0);
 
   gl_Position = pos4 * vp;
