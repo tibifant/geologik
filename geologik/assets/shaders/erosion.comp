@@ -30,16 +30,16 @@ void main()
     //atomicAdd(tiles[i].heights[0], val);
 
     uint snowHeight = tiles[i].heights[0] & mask;
-    uint meltAmount = 1 * snowHeight;
-    uint hiVal = (meltAmount - 1) << 16;
-    uint loVal = ~meltAmount + 1;
-    uint val = hiVal | loVal;
-    atomicAdd(tiles[i].heights[0], val);
+    
+    if (snowHeight > 0)
+    {
+      uint meltAmount = max(uint(snowHeight * 0.01), 1); // max snowheight = 100
+      uint hiVal = (meltAmount - 1) << 16;
+      uint loVal = ~meltAmount + 1;
+      uint val = hiVal | loVal;
+      atomicAdd(tiles[i].heights[0], val);
+    }
   }
-
-
-// overflow = 1 -> 1 weniger hinzufuegen
-  // 1-2% snow melting and turning into water
 
   // take terrain with you / away (atomic adds)
 
