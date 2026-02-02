@@ -22,13 +22,6 @@ void main()
 
   for (uint i = lineIdx * width; i < (lineIdx + 1) * width; i++)
   {
-    //uint snowHeight = tiles[i].heights[0] >> 16;
-    //uint meltAmount = 1 * snowHeight;
-    //uint subVal = ((~meltAmount + 1) << 16);
-    //uint addVal = meltAmount;
-    //uint val = subVal | addVal;
-    //atomicAdd(tiles[i].heights[0], val);
-
     tile currentTile = tiles[i]; 
     uint snowHeight = currentTile.heights[0] & mask;
 

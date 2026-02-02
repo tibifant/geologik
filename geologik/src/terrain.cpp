@@ -47,7 +47,7 @@ lsResult terrain_generate(terrain *pTerrain)
     -16000, // tt_limestone 
     100 // tt_stone 
   };
-
+  
   constexpr int32_t MaxHeight[tt_bedrock] = {
     100, // tt_snow
     5000, // tt_water
@@ -55,7 +55,7 @@ lsResult terrain_generate(terrain *pTerrain)
     100, // tt_soil
     100, // tt_sand
     16000, // tt_limestone
-    65536 // tt_stone
+    32000 // tt_stone
   };
 
   const size_t terrainSize = pTerrain->width * pTerrain->width;

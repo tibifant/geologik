@@ -309,6 +309,11 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 
     shader_dispatch_compute(&_Render.erosion.snowmeltShader, width, 1, 1);
   }
+  
+  shader_bind(&_Render.erosion.erosionShader);
+  shader_setUniform(&_Render.erosion.erosionShader, "width", width);
+
+  shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
 }
 
 void render_update_camera(lsAppState *pAppState)
