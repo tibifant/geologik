@@ -19,7 +19,7 @@ void render_draw2DQuad(const matrix &model, const render_textureId textureIndex)
 void render_draw3DQuad(const matrix &model, const render_textureId textureIndex);
 void render_drawTerrain(const uint32_t width);
 
-void render_computeTerrain(const uint32_t width);
+void render_computeTerrain(const lsAppState *pAppState, const uint32_t width);
 
 void render_update_camera(lsAppState *pAppState);
 

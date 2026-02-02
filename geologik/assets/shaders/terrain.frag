@@ -13,6 +13,7 @@ layout(binding = 0, std430) buffer data
 uniform uint width;
 
 in flat uint _index;
+in flat uint _height;
 
 out vec4 color;
 
@@ -51,11 +52,13 @@ void main()
     if ((tiles[_index].heights[i] & mask) > 0)
     {
       c = colors[i * 2];
+      c.x += (tiles[_index].heights[i] & mask) * 0.01;
       break;
     }
     else if ((tiles[_index].heights[i] >> 16) > 0)
     {
       c = colors[i * 2 + 1];
+      c.x += (tiles[_index].heights[i] >> 16) * 0.01;
       break;
     }
   }

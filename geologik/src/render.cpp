@@ -300,12 +300,15 @@ void render_drawTerrain(const uint32_t width)
   }
 }
 
-void render_computeTerrain(const uint32_t width)
+void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 {
-  shader_bind(&_Render.erosion.computeShader);
-  shader_setUniform(&_Render.erosion.computeShader, "width", width);
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M))
+  {
+    shader_bind(&_Render.erosion.computeShader);
+    shader_setUniform(&_Render.erosion.computeShader, "width", width);
 
-  shader_dispatch_compute(&_Render.erosion.computeShader, width, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.computeShader, width, 1, 1);
+  }
 }
 
 void render_update_camera(lsAppState *pAppState)

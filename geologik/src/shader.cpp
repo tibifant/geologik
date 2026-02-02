@@ -330,7 +330,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     puts("Error compiling fragment shader.\nThe following error occured:");
     puts(buffer);
-
+    
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
   
@@ -345,7 +345,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   glLinkProgram(pShader->shaderProgram);
 
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
-
+  
   if (status != GL_TRUE)
   {
     char buffer[1024];
@@ -353,7 +353,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     puts("Error linking shader.\nThe following error occured:");
     puts(buffer);
-
+    
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
 
@@ -420,7 +420,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   glLinkProgram(pShader->shaderProgram);
   
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
-
+  
   if (status != GL_TRUE)
   {
     char buffer[1024];

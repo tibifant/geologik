@@ -40,7 +40,7 @@ lsResult terrain_generate(terrain *pTerrain)
 
   constexpr int32_t MinHeight[tt_bedrock] = {
     -100, // tt_snow 
-    -10000, // tt_water 
+    -1000, // tt_water 
     -10, // tt_grass
     -100, // tt_soil 
     -100, // tt_sand 
@@ -68,8 +68,8 @@ lsResult terrain_generate(terrain *pTerrain)
 
   for (int8_t tt = tt_stone; tt >= 0; tt--)
   {
-    if (tt == tt_water)
-      continue;
+    //if (tt == tt_water)
+      //continue;
 
     generate_noise(pNoise, pTerrain->width);
 
@@ -95,7 +95,7 @@ lsResult terrain_generate(terrain *pTerrain)
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
       }
-      else if (tt == tt_snow && pTotalHeight[i] < 40000)
+      else if (tt == tt_snow && pTotalHeight[i] < 4000)
       {
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
@@ -103,7 +103,7 @@ lsResult terrain_generate(terrain *pTerrain)
 
       const int32_t mappedVal = (int32_t)((float_t)(pNoise[i]) / lsMaxValue<uint16_t>() * (MaxHeight[tt] + lsAbs(MinHeight[tt])) - lsAbs(MinHeight[tt]));
       const uint16_t val = (uint16_t)(lsClamp(mappedVal, int32_t(0), (int32_t)(lsMaxValue<uint16_t>())));
-
+      
       pTerrain->pTiles[i].layerHeights[tt] = val;
 
       pTotalHeight[i] += val;
