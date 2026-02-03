@@ -39,8 +39,8 @@ lsResult terrain_generate(terrain *pTerrain)
   lsAssert(pTerrain != nullptr);
 
   constexpr int32_t MinHeight[tt_bedrock] = {
-    -100, // tt_snow 
-    -1000, // tt_water 
+    -50, // tt_snow 
+    -100, // tt_water 
     0, // tt_grass
     -100, // tt_soil 
     -100, // tt_sand 
@@ -50,7 +50,7 @@ lsResult terrain_generate(terrain *pTerrain)
   
   constexpr int32_t MaxHeight[tt_bedrock] = {
     100, // tt_snow
-    5000, // tt_water
+    50, // tt_water
     10, // tt_grass
     100, // tt_soil
     100, // tt_sand
@@ -68,8 +68,8 @@ lsResult terrain_generate(terrain *pTerrain)
   
   for (int8_t tt = tt_stone; tt >= 0; tt--)
   {
-    if (tt == tt_water)
-      continue;
+    //if (tt == tt_water)
+      //continue;
 
     generate_noise(pNoise, pTerrain->width);
 
@@ -90,12 +90,12 @@ lsResult terrain_generate(terrain *pTerrain)
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
       }
-      else if (tt == tt_grass && (pTerrain->pTiles[i].layerHeights[tt_soil] < 5 || pTotalHeight[i] > 50000))
+      else if (tt == tt_grass && (pTerrain->pTiles[i].layerHeights[tt_soil] < 5 || pTotalHeight[i] > 20000))
       {
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;
       }
-      else if (tt == tt_snow && pTotalHeight[i] < 4000)
+      else if (tt == tt_snow && pTotalHeight[i] < 18000)
       {
         pTerrain->pTiles[i].layerHeights[tt] = 0;
         continue;

@@ -21,7 +21,7 @@ void addTerrain(uint index, uint amount, uint terrainType)
 {
   uint val = amount;
 
-  if ((terrainType & 1) == 0)
+  if ((terrainType & 1) == 1)
     val <<= 16;
   
   atomicAdd(tiles[index].heights[terrainType / 2], val);
@@ -31,7 +31,7 @@ void removeTerrain(uint index, uint amount, uint terrainType)
 {
   uint val = (~amount + 1);
 
-  if ((terrainType & 1) == 0)
+  if ((terrainType & 1) == 1)
     val <<= 16;
 
   atomicAdd(tiles[index].heights[terrainType / 2], val);
@@ -100,10 +100,34 @@ void main()
 
     if (height > minNeighborHeight)
     {
+      uint idx = offset + x;
+      // get highest terrain at own tile - beneath water
+      uint terrainTypeBeneath = 0;
+
+      for (uint i = 1; i < 4; i++)
+      {
+        if ((self.heights[i] & mask) > 0)
+        {
+          terrainTypeBeneath = i * 2;
+          break;
+        }
+        else if ((self.heights[i] >> 16) > 0)
+        {
+          terrainTypeBeneath = i * 2 + 1;
+          break;
+        }
+      }
+
       uint diff = min((height - minNeighborHeight) / 2, selfWater);
 
+      if (terrainTypeBeneath > 0 && diff > 1 && terrainTypeBeneath != 7)
+      {
+        removeTerrain(idx, 1, terrainTypeBeneath);
+        addTerrain(minNeighbor, 1, terrainTypeBeneath);
+      }
+
       uint removeVal = (~diff + 1) << 16;
-      atomicAdd(tiles[offset + x].heights[0], removeVal);
+      atomicAdd(tiles[idx].heights[0], removeVal);
 
       uint addVal = diff << 16;
       atomicAdd(tiles[minNeighbor].heights[0], addVal);

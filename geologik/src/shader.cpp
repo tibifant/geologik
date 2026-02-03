@@ -409,7 +409,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
 
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-
+  
   if (requestNewProgram)
     pShader->shaderProgram = glCreateProgram();
   else
@@ -431,9 +431,9 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
 
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-
+  
   pShader->initialized = true;
-
+  
 epilogue:
   lsFreePtr(&cleanSource);
 
