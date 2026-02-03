@@ -36,8 +36,4 @@ void main()
       atomicAdd(tiles[i].heights[0], val);
     }
   }
-
-  // take terrain with you / away (atomic adds)
-
-  // add water to lowest neighbour (atomic adds)
 }

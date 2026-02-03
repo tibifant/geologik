@@ -50,6 +50,7 @@ static struct
   {
     shader erosionShader;
     shader snowmeltShader;
+    shader rainShader;
     gpu_buffer gpuBuffer;
     bool readA = true;
   } erosion;
@@ -165,6 +166,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.snowmeltShader, "shaders/snowmelt.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.rainShader, "shaders/rain.comp"));
   }
 
   // Create Terrain.
@@ -323,6 +325,15 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
       glFinish();
       shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
     }
+  }
+
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P))
+  {
+    shader_bind(&_Render.erosion.rainShader);
+    shader_setUniform(&_Render.erosion.rainShader, "width", width);
+    shader_setUniform(&_Render.erosion.rainShader, "hashValue", uint32_t(lsGetRand()));
+
+    shader_dispatch_compute(&_Render.erosion.rainShader, width, 1, 1);
   }
 }
 
