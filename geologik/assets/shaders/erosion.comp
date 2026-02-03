@@ -53,59 +53,60 @@ void main()
     tile self = tiles[offset + x];
     uint selfWater = self.heights[0] >> 16;
 
-    if (selfWater > 0)
+    if (selfWater == 0)
+      continue;
+
+    ivec2 selfPos = ivec2(x, y);
+
+    uint minNeighbor = 0;
+    uint minNeighborHeight = 1 << 24;
+
+    for (uint i = 0; i < 8; i++)
     {
-      ivec2 selfPos = ivec2(x, y);
+      ivec2 tilePos = selfPos + neighbours[i];
 
-      uint minNeighbor = 0;
-      uint minNeighborHeight = 100000;
+      if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x > width - 1 || tilePos.y > width - 1)
+        continue;
 
-      for (uint i = 0; i < 8; i++)
-      {
-        ivec2 tilePos = selfPos + neighbours[i];
+      // get tile
+      uint tileIdx = tilePos.y * width + tilePos.x;
+      tile t = tiles[tileIdx];
 
-        if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x > width - 1 || tilePos.y > width - 1)
-          continue;
-
-        // get tile
-        tile t = tiles[offset + tilePos.x];
-
-        // calc height
-        uint height = 0; 
-
-        for (uint j = 0; j < 4; j++)
-        {
-          height += t.heights[j] & mask;
-          height += t.heights[j] >> 16;
-        }
-
-        // is height smaller?
-        if (height < minNeighborHeight)
-        {
-          minNeighborHeight = height;
-          minNeighbor = i;
-        }  
-      }
-
-      // cmp with min Neighbor height, if lower -> add half of diff to it.
+      // calc height
       uint height = 0; 
 
-      for (uint i = 0; i < 4; i++)
+      for (uint j = 0; j < 4; j++)
       {
-        height += self.heights[i] & mask;
-        height += self.heights[i] >> 16;
+        height += t.heights[j] & mask;
+        height += t.heights[j] >> 16;
       }
 
-      if (height > minNeighborHeight)
+      // is height smaller?
+      if (height < minNeighborHeight)
       {
-        uint diff = min((height - minNeighborHeight) / 2, selfWater);
+        minNeighborHeight = height;
+        minNeighbor = tileIdx;
+      }  
+    }
 
-        uint removeVal = (~diff + 1) << 16;
-        atomicAdd(tiles[offset + x].heights[0], removeVal);
+    // cmp with min Neighbor height, if lower -> add half of diff to it.
+    uint height = 0; 
 
-        uint addVal = diff << 16;
-        atomicAdd(tiles[offset + x].heights[0], addVal);
-      }
+    for (uint i = 0; i < 4; i++)
+    {
+      height += self.heights[i] & mask;
+      height += self.heights[i] >> 16;
+    }
+
+    if (height > minNeighborHeight)
+    {
+      uint diff = min((height - minNeighborHeight) / 2, selfWater);
+
+      uint removeVal = (~diff + 1) << 16;
+      atomicAdd(tiles[offset + x].heights[0], removeVal);
+
+      uint addVal = diff << 16;
+      atomicAdd(tiles[minNeighbor].heights[0], addVal);
     }
   }
 }
