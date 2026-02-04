@@ -16,11 +16,24 @@ layout(binding = 0, std430) buffer data
 uniform sampler2d texture;
 
 uniform uint width;
-uniform float sunAngle;
+uniform vec3 sunDir;
 uniform float factor; // i think
 
-const float pi = 3.1415926;
 const uint mask = 0xFFFF;
+
+uint height_from_idx(uint idx)
+{
+  uint mask = 0xFFFF;
+  uint height = 0;
+
+  for (uint i = 0; i < 4; i++)
+  {
+    height += tiles[idx].heights[i] & mask;
+    height += tiles[idx].heights[i] >> 16;
+  }
+
+  return height;
+}
 
 void main()
 {
@@ -31,25 +44,27 @@ void main()
   {
     tile self = tiles[offset + x];
 
-    uint height = 0;
-    for (uint i = 0; i < 4; i++)
-    {
-      height += self.heights[i] & mask;
-      height += self.heights[i] >> 16;
-    }
+    uint topIdx = _index - width;
+    uint bottomIdx = _index + width;
+    uint leftIdx = _index - 1;
+    uint rightIdx = _index + 1;
 
-    // at 5km -10C in winter at night, 3C in summer at night
-    // at 5km -8C in winter at day, 8C in summer at day
-    // at 0m 0 in winter at night, 20 in summer at night
-    // at 0m 10 in winter at day, 35 in summer at night
+    float yDiff = (float(height_from_idx(topIdx)) - float(height_from_idx(bottomIdx))) * 0.5;
+    float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
+    vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
 
-    if (sunAngle > 0 && sunAngle < pi)
-    {
-      // in sunlight
-    }
-    else
-    {
-      // in shade
-    }
+    uint height = height_from_tile(self);
+
+    float minTemp = -10;
+    float maxTemp = 20;
+    float sunMaxTemp = 10;
+
+    float temp = mix(minTemp, maxTemp, clamp(height * 0.00064, 0, 1));
+    float sunAllignment = dot(normal, sunDir);
+
+    if (sunAllignment > 0)
+      temp += sunAllignment * sunMaxTemp;
+
+    // TODO evaporate via temp
   } 
 }

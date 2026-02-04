@@ -70,6 +70,9 @@ static struct
 
   framebuffer frameBuffer;
 
+  vec3f sunDir;
+  float sunAngle;
+
   pool<texture> textures;
   camera_3d_free_floating camera;
   matrix vp;
@@ -148,7 +151,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
   _Render.windowSize = pAppState->windowSize;
   camera_3d_free_floating_create(_Render.camera, vec3f(1, 1, 800), vec3f(1, 1, -1).Normalize(), vec2f(_Render.windowSize));
-  render_update_camera(pAppState);
+  render_update(pAppState);
   _Render.lastFrameStartNs = lsGetCurrentTimeNs();
 
   framebuffer_create(&_Render.frameBuffer, _Render.windowSize, 1, true);
@@ -169,12 +172,12 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.rainShader, "shaders/rain.comp"));
 
-    texture_create(&_Render.erosion.temperatureTex);
+    //texture_create(&_Render.erosion.temperatureTex);
 
-    uint8_t *pTex;
-    LS_ERROR_CHECK(lsAllocZero(&pTex, (terrainWidth / 8) * (terrainWidth / 8)));
-    texture_set(&_Render.erosion.temperatureTex, pTex, vec2s((terrainWidth / 8)));
-    lsFreePtr(&pTex);
+    //uint8_t *pTex;
+    //LS_ERROR_CHECK(lsAllocZero(&pTex, (terrainWidth / 8) * (terrainWidth / 8)));
+    //texture_set(&_Render.erosion.temperatureTex, pTex, vec2s((terrainWidth / 8)));
+    //lsFreePtr(&pTex);
   }
 
   // Create Terrain.
@@ -299,6 +302,7 @@ void render_drawTerrain(const uint32_t width)
   shader_bind(&_Render.terrain.renderShader);
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
+  shader_setUniform(&_Render.terrain.renderShader, "sunDir", _Render.sunDir);
 
   for (uint32_t y = 0; y < width; y += quadCountY)
   {
@@ -325,6 +329,9 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
       shader_setUniform(&_Render.erosion.environmentShader, "evaporateWater", evaporate);
 
       shader_dispatch_compute(&_Render.erosion.environmentShader, width, 1, 1);
+
+      glFlush();
+      glFinish();
     }
   }
 
@@ -335,6 +342,7 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     //shader_setUniform(&_Render.erosion.erosionShader, "hashValue", uint32_t(lsGetRand()));
 
     shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
+
   }
 
   // fast erosion
@@ -353,14 +361,31 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
   {
     shader_bind(&_Render.erosion.rainShader);
     shader_setUniform(&_Render.erosion.rainShader, "width", width);
-    shader_setUniform(&_Render.erosion.rainShader, "hashValue", uint32_t(lsGetRand()));
+    //shader_setUniform(&_Render.erosion.rainShader, "hashValue", uint32_t(lsGetRand()));
 
     shader_dispatch_compute(&_Render.erosion.rainShader, width, 1, 1);
   }
 }
 
-void render_update_camera(lsAppState *pAppState)
+static void update_sun_dir()
 {
+  _Render.sunAngle += 0.01f;
+
+  if (_Render.sunAngle >= 5 * lsQUARTERPIf)
+    _Render.sunAngle = -lsQUARTERPIf;
+
+  vec3f pos = vec3f(lsCos(_Render.sunAngle), 0, lsSin(_Render.sunAngle));
+  pos.y = pos.z * 0.35f;
+
+  print("sundir: ", pos.x, ", ", pos.y, ", ", pos.z, '\n');
+
+  _Render.sunDir = pos.Normalize();
+}
+
+void render_update(lsAppState *pAppState)
+{
+  update_sun_dir();
+
   vec3f movementDir = vec3f(0);
 
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_W))

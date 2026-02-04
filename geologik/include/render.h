@@ -21,7 +21,7 @@ void render_drawTerrain(const uint32_t width);
 
 void render_computeTerrain(const lsAppState *pAppState, const uint32_t width);
 
-void render_update_camera(lsAppState *pAppState);
+void render_update(lsAppState *pAppState);
 
 #ifdef _DEBUG
 lsResult render_reload_shader();

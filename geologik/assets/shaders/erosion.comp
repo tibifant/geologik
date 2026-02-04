@@ -62,8 +62,11 @@ void main()
 
   // todo change per frame which neighbour to choose if all are the same height or offset from where to start...
 
-  for (uint x = 0; x < width; x++)
+  uint offsetX = lineIdx;
+
+  for (uint a = 0; a < width; a++)
   {
+    uint x = (a + offsetX) % width;
     tile self = tiles[offset + x];
     uint selfWater = self.heights[0] >> 16;
 
@@ -113,10 +116,11 @@ void main()
       height += self.heights[i] >> 16;
     }
 
-    if (height > minNeighborHeight)// && (hash(x, y, hashValue) & 3) <= 2)
+    if (height > minNeighborHeight)// && (hash(x, y, hashValue) & 8) <= 7)
     {
       uint idx = offset + x;
-      // get highest terrain at own tile - beneath water
+
+      // get highest terrain at own tile (underneath water)
       uint terrainTypeBeneath = 0;
 
       for (uint i = 1; i < 4; i++)

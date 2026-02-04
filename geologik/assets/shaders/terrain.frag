@@ -11,6 +11,7 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform uint width;
+uniform vec3 sunDir;
 
 in flat uint _index;
 
@@ -67,5 +68,5 @@ void main()
     }
   }
 
-  color = vec4(c * vec3(dot(normalize(vec3(0.2, 0.6, 0.3)), normal) * 0.5 + 0.5), 1);
+  color = vec4(c * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1);
 }
