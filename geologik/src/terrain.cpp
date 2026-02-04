@@ -57,7 +57,7 @@ lsResult terrain_generate(terrain *pTerrain)
     16000, // tt_limestone
     32000 // tt_stone
   };
-
+  
   const size_t terrainSize = pTerrain->width * pTerrain->width;
 
   uint16_t *pNoise = nullptr;

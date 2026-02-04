@@ -62,11 +62,8 @@ void main()
 
   // todo change per frame which neighbour to choose if all are the same height or offset from where to start...
 
-  uint offsetX = lineIdx;
-
-  for (uint a = 0; a < width; a++)
-  {
-    uint x = (a + offsetX) % width;
+  for (uint x = 0; x < width; x++)
+  {    
     tile self = tiles[offset + x];
     uint selfWater = self.heights[0] >> 16;
 
