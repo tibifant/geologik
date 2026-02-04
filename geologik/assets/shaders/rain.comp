@@ -19,9 +19,16 @@ uniform uint hashValue;
 const uint mask = 0xFFFF;
 const uint phi = 0x61C88647;
 
+uint pcg_hash(uint x)
+{
+  uint state = x * 747796405u + 2891336453u;
+  uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+  return (word >> 22u) ^ word;
+}
+
 uint hash(uint x, uint y, uint v)
 {
-  return ((x * phi + y) * phi + v) * phi;
+  return pcg_hash(((x * phi + y) * phi + v) * phi);
 }
 
 void main()
@@ -34,7 +41,7 @@ void main()
   {
     uint rand = hash(x, y, hashValue);
 
-    if ((rand & 3) <= 3)
+    if ((rand & 3) <= 1)
     {
       uint addVal = (rand & 4) << 16;
       atomicAdd(tiles[offset + x].heights[0], addVal);

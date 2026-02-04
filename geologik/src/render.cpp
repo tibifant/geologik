@@ -49,10 +49,11 @@ static struct
   struct
   {
     shader erosionShader;
-    shader snowmeltShader;
+    shader environmentShader;
     shader rainShader;
     gpu_buffer gpuBuffer;
-    bool readA = true;
+
+    texture temperatureTex;
   } erosion;
 
   struct
@@ -165,8 +166,15 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     terrain_destroy(&t);
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
-    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.snowmeltShader, "shaders/snowmelt.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.rainShader, "shaders/rain.comp"));
+
+    texture_create(&_Render.erosion.temperatureTex);
+
+    uint8_t *pTex;
+    LS_ERROR_CHECK(lsAllocZero(&pTex, (terrainWidth / 8) * (terrainWidth / 8)));
+    texture_set(&_Render.erosion.temperatureTex, pTex, vec2s((terrainWidth / 8)));
+    lsFreePtr(&pTex);
   }
 
   // Create Terrain.
@@ -304,19 +312,32 @@ void render_drawTerrain(const uint32_t width)
 
 void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 {
-  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M))
+  // thaw and/or evaporate water
   {
-    shader_bind(&_Render.erosion.snowmeltShader);
-    shader_setUniform(&_Render.erosion.snowmeltShader, "width", width);
+    bool thaw = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M);
+    bool evaporate = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_N);
 
-    shader_dispatch_compute(&_Render.erosion.snowmeltShader, width, 1, 1);
+    if (thaw || evaporate)
+    {
+      shader_bind(&_Render.erosion.environmentShader);
+      shader_setUniform(&_Render.erosion.environmentShader, "width", width);
+      shader_setUniform(&_Render.erosion.environmentShader, "meltSnow", thaw);
+      shader_setUniform(&_Render.erosion.environmentShader, "evaporateWater", evaporate);
+
+      shader_dispatch_compute(&_Render.erosion.environmentShader, width, 1, 1);
+    }
   }
 
-  shader_bind(&_Render.erosion.erosionShader);
-  shader_setUniform(&_Render.erosion.erosionShader, "width", width);
+  // erosion
+  {
+    shader_bind(&_Render.erosion.erosionShader);
+    shader_setUniform(&_Render.erosion.erosionShader, "width", width);
+    //shader_setUniform(&_Render.erosion.erosionShader, "hashValue", uint32_t(lsGetRand()));
 
-  shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
+  }
 
+  // fast erosion
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_T))
   {
     for (size_t i = 0; i < 63; i++)
@@ -327,6 +348,7 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     }
   }
 
+  // rain
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P))
   {
     shader_bind(&_Render.erosion.rainShader);

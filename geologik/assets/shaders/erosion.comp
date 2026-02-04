@@ -14,8 +14,9 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform uint width;
+//uniform uint hashValue;
 
-uint mask = 0xFFFF;
+const uint mask = 0xFFFF;
 
 void addTerrain(uint index, uint amount, uint terrainType)
 {
@@ -37,6 +38,20 @@ void removeTerrain(uint index, uint amount, uint terrainType)
   atomicAdd(tiles[index].heights[terrainType / 2], val);
 }
 
+const uint phi = 0x61C88647;
+
+uint pcg_hash(uint x)
+{
+  uint state = x * 747796405u + 2891336453u;
+  uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+  return (word >> 22u) ^ word;
+}
+
+uint hash(uint x, uint y, uint v)
+{
+  return pcg_hash(((x * phi + y) * phi + v) * phi);
+}
+
 const ivec2 neighbours[8] = ivec2[8](ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1));
 
 void main()
@@ -49,10 +64,10 @@ void main()
 
   for (uint x = 0; x < width; x++)
   {
-    // do we have water? if no? skip.      
     tile self = tiles[offset + x];
     uint selfWater = self.heights[0] >> 16;
 
+    // do we have water? if no? skip.
     if (selfWater == 0)
       continue;
 
@@ -98,7 +113,7 @@ void main()
       height += self.heights[i] >> 16;
     }
 
-    if (height > minNeighborHeight)
+    if (height > minNeighborHeight)// && (hash(x, y, hashValue) & 3) <= 2)
     {
       uint idx = offset + x;
       // get highest terrain at own tile - beneath water

@@ -13,27 +13,43 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
+uniform sampler2d texture;
+
 uniform uint width;
-uniform uint hashValue;
+uniform float sunAngle;
+uniform float factor; // i think
 
+const float pi = 3.1415926;
 const uint mask = 0xFFFF;
-const uint phi = 0x61C88647;
-
-uint hash(uint x, uint y, uint v)
-{
-  return ((x * phi + y) * phi + v) * phi;
-}
 
 void main()
 {
-  uint lineIdx = gl_GlobalInvocationID.x;
-  uint y = lineIdx;
-  uint offset = lineIdx * width;
+  uint y = gl_GlobalInvocationID.x;
+  uint offset = y * width;
 
-  for (uint x = 0; x < width; x++)
+  for (x = 0; x < width; x++)
   {
-    
-  }
-}
+    tile self = tiles[offset + x];
 
-// chance at removing water when hot enough
+    uint height = 0;
+    for (uint i = 0; i < 4; i++)
+    {
+      height += self.heights[i] & mask;
+      height += self.heights[i] >> 16;
+    }
+
+    // at 5km -10C in winter at night, 3C in summer at night
+    // at 5km -8C in winter at day, 8C in summer at day
+    // at 0m 0 in winter at night, 20 in summer at night
+    // at 0m 10 in winter at day, 35 in summer at night
+
+    if (sunAngle > 0 && sunAngle < pi)
+    {
+      // in sunlight
+    }
+    else
+    {
+      // in shade
+    }
+  } 
+}

@@ -30,7 +30,7 @@ uint height_from_idx(uint idx)
   return height;
 }
 
-vec3 colorFromHeight(uint terrainType, uint height)
+vec3 color_from_height(uint terrainType, uint height)
 {
   vec3 colorsThick[] = { vec3(1, 1, 1),       vec3(0.1, 0.3, 0.6),    vec3(0.5, 0.75, 0.3), vec3(0.32, 0.24, 0.2), vec3(0.65, 0.56, 0.33), vec3(0.65, 0.62, 0.52), vec3(0.4, 0.4, 0.4), vec3(0.1, 0.1, 0.1) };
   vec3 colorsThin[] = { vec3(0.8, 0.9, 0.95), vec3(0.2, 0.4, 0.65), vec3(0.6, 0.85, 0.4), vec3(0.47, 0.39, 0.35), vec3(0.85, 0.76, 0.53), vec3(0.85, 0.82, 0.62), vec3(0.65, 0.65, 0.65), vec3(0.1, 0.1, 0.1) };
@@ -57,12 +57,12 @@ void main()
   {
     if ((tiles[_index].heights[i] & mask) > 0)
     {
-      c = colorFromHeight(i * 2, (tiles[_index].heights[i] & mask));
+      c = color_from_height(i * 2, (tiles[_index].heights[i] & mask));
       break;
     }
     else if ((tiles[_index].heights[i] >> 16) > 0)
     {
-      c = colorFromHeight(i * 2 + 1, ((tiles[_index].heights[i] >> 16)));
+      c = color_from_height(i * 2 + 1, ((tiles[_index].heights[i] >> 16)));
       break;
     }
   }

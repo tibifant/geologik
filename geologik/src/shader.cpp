@@ -294,7 +294,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   LS_ERROR_IF(pShader == nullptr || vertexSource == nullptr || fragmentSource == nullptr, lsR_ArgumentNull);
 
   pShader->type = st_vertex_fragment;
-
+  
   LS_ERROR_CHECK(shader_allocCleanSource_internal(vertexSource, &cleanVertexSource));
   LS_ERROR_CHECK(shader_allocCleanSource_internal(fragmentSource, &cleanFragmentSource));
 
