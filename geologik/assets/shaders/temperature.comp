@@ -59,12 +59,13 @@ void main()
     float maxTemp = 20;
     float sunMaxTemp = 10;
 
-    float temp = mix(minTemp, maxTemp, clamp(height * 0.00064, 0, 1));
+    float temp = mix(minTemp, maxTemp, clamp(height * 0.0032, 0, 1));
     float sunAllignment = dot(normal, sunDir);
 
     if (sunAllignment > 0)
       temp += sunAllignment * sunMaxTemp;
 
+    // TODO lerp with old temp
     // TODO evaporate via temp
   } 
 }
