@@ -219,7 +219,7 @@ uint32_t shader_getUniformIndex(shader *pShader, const char *uniformName)
     return ref.index;
 
   memcpy(ref.name, uniformName, length + 1);
-
+  
   pShader->pUniformReferences[pShader->uniformReferenceCount] = ref;
   pShader->uniformReferenceCount++;
 
@@ -287,7 +287,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
   char *cleanVertexSource = nullptr;
   char *cleanFragmentSource = nullptr;
-
+  
   GLuint vertexShaderHandle = (GLuint)-1;
   GLuint fragmentShaderHandle = (GLuint)-1;
 
@@ -327,7 +327,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   {
     char buffer[1024];
     glGetShaderInfoLog(fragmentShaderHandle, sizeof(buffer), nullptr, buffer);
-
+    
     puts("Error compiling fragment shader.\nThe following error occured:");
     puts(buffer);
     
@@ -338,12 +338,12 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
     pShader->shaderProgram = glCreateProgram();
   else
     glUseProgram(pShader->shaderProgram);
-
+  
   glAttachShader(pShader->shaderProgram, vertexShaderHandle);
   glAttachShader(pShader->shaderProgram, fragmentShaderHandle);
 
   glLinkProgram(pShader->shaderProgram);
-
+  
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
   
   if (status != GL_TRUE)
@@ -356,16 +356,16 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
     
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-
+  
   pShader->initialized = true;
-
+  
 epilogue:
   lsFreePtr(&cleanVertexSource);
   lsFreePtr(&cleanFragmentSource);
-
+  
   if (vertexShaderHandle != (GLuint)-1)
     glDeleteShader(vertexShaderHandle);
-
+  
   if (fragmentShaderHandle != (GLuint)-1)
     glDeleteShader(fragmentShaderHandle);
 

@@ -14,8 +14,23 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform uint width;
+uniform vec3 sunDir;
 uniform bool meltSnow;
 uniform bool evaporateWater;
+
+uint height_from_idx(uint idx)
+{
+  uint mask = 0xFFFF;
+  uint height = 0;
+
+  for (uint i = 0; i < 4; i++)
+  {
+    height += tiles[idx].heights[i] & mask;
+    height += tiles[idx].heights[i] >> 16;
+  }
+
+  return height;
+}
 
 void main()
 {
@@ -26,8 +41,6 @@ void main()
   {
     tile currentTile = tiles[i];
     uint waterHeight = currentTile.heights[0] >> 16;
-
-    bool snowMelting = false;
 
     if (meltSnow)
     {
@@ -51,6 +64,46 @@ void main()
         uint val = (~1 + 1) << 16;
         atomicAdd(tiles[i].heights[0], val);
       }
+    }
+    else
+    {
+      uint topIdx = i - width;
+      uint bottomIdx = i + width;
+      uint leftIdx = i - 1;
+      uint rightIdx = i + 1;
+
+      float yDiff = (float(height_from_idx(topIdx)) - float(height_from_idx(bottomIdx))) * 0.5;
+      float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
+      vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
+
+      uint height = height_from_idx(i);
+
+      const float minTemp = -200;
+      const float maxTemp = 20;
+      const float sunMaxTemp = 5;
+
+      float temp = mix(minTemp, maxTemp, clamp(height * 0.0018, 0, 1));
+      float sunAllignment = dot(normal, sunDir);
+
+      if (sunAllignment > 0)
+        temp += sunAllignment * sunMaxTemp;
+
+      if (temp <= 0 || waterHeight == 0)
+        continue;
+      
+      uint evaporation = 1;
+
+      if (temp > 15)
+        evaporation = 2;
+      else if (temp > 20)
+        evaporation = 3;
+
+      evaporation = clamp(evaporation, 0, waterHeight);
+
+      uint val = (~evaporation + 1) << 16;
+      atomicAdd(tiles[i].heights[0], val);
+
+      // TODO melt snow...
     }
   }
 }

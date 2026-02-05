@@ -39,13 +39,13 @@ lsResult terrain_generate(terrain *pTerrain)
   lsAssert(pTerrain != nullptr);
 
   constexpr int32_t MinHeight[tt_bedrock] = {
-    -50, // tt_snow 
-    -100, // tt_water 
+    -50, // tt_snow
+    -100, // tt_water
     0, // tt_grass
-    -100, // tt_soil 
-    -100, // tt_sand 
-    -16000, // tt_limestone 
-    100 // tt_stone 
+    -100, // tt_soil
+    -100, // tt_sand
+    -16000, // tt_limestone
+    100 // tt_stone
   };
   
   constexpr int32_t MaxHeight[tt_bedrock] = {
