@@ -34,6 +34,8 @@ struct camera_3d_free_floating : camera_3d
 {
   vec3f position;
   vec3f direction;
+  vec3f movVelocity;
+  vec3f rotVelocity;
 };
 
 void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f position, const vec3f direction, const vec2f windowSize);
@@ -95,7 +97,9 @@ void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f po
 void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 {
   const matrix localView = matrix::LookAtRH(vec3f(), cam.direction, vec3f(0, 0, 1)).Inverse(); // tranforming view space to world space
-  cam.position += (vec3f)(localView.TransformVector3(-dir.xzy())); // .xzy to match view space
+  //cam.position += (vec3f)(localView.TransformVector3(-dir.xzy())); // .xzy to match view space
+  cam.movVelocity = lsLerp(cam.movVelocity, (vec3f)(localView.TransformVector3(-dir.xzy())), 0.01f);
+  cam.position = cam.position + cam.movVelocity; // .xzy to match view space
 }
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
@@ -105,7 +109,8 @@ void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f di
 
 void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.direction = vec3f(lsSin(-dir.x), lsCos(-dir.x) * lsCos(dir.y), lsSin(dir.y));
+  cam.rotVelocity = lsLerp(cam.rotVelocity, vec3f(lsSin(-dir.x), lsCos(-dir.x) * lsCos(dir.y), lsSin(dir.y)), 0.01f);
+  cam.direction = cam.rotVelocity;
 }
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
@@ -232,7 +237,7 @@ void render_startFrame(lsAppState *pAppState)
 
   framebuffer_bind(&_Render.frameBuffer);
 
-  render_clearColor(vec4f(0.5f, 0.7f, 0.9f, 1));
+  render_clearColor(vec4f(vec3f(0.5f, 0.7f, 0.9f) * lsMax(vec3f(0), vec3f(_Render.sunDir.z)), 1));
   render_clearDepth();
 
   render_setDepthMode(rCR_Less);
@@ -359,15 +364,10 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 
 static void update_sun_dir()
 {
-  _Render.sunAngle += 0.01f;
-
-  if (_Render.sunAngle >= 5 * lsQUARTERPIf)
-    _Render.sunAngle = -lsQUARTERPIf;
+  _Render.sunAngle = lsMod(_Render.sunAngle + 0.007f, lsTWOPIf);
 
   vec3f pos = vec3f(lsCos(_Render.sunAngle), 0, lsSin(_Render.sunAngle));
   pos.y = pos.z * 0.35f;
-
-  print("sundir: ", pos.x, ", ", pos.y, ", ", pos.z, '\n');
 
   _Render.sunDir = pos.Normalize();
 }

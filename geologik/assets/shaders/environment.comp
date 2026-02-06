@@ -50,6 +50,7 @@ uint hash(uint x, uint y, uint v)
 
 void main()
 {
+  // TODO clean up & use texture
   uint lineIdx = gl_GlobalInvocationID.x;
   uint mask = 0xFFFF;
 
@@ -93,7 +94,7 @@ void main()
       vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
 
       const uint maxHeight = 13000;
-      uint height = clamp(height_from_idx(i) - 10000, uint(0), maxHeight);
+      float height = clamp(float(height_from_idx(i)) - 10000, float(0), float(maxHeight));
 
       const float minTemp = -10;
       const float maxTemp = 22;
@@ -144,9 +145,9 @@ void main()
         uint evaporation = 1;
 
         if (temp > 20)
-          evaporation = 3;
-        if (temp > 15)
           evaporation = 2;
+        //if (temp > 15)
+        //  evaporation = 2;
 
         evaporation = clamp(evaporation, 0, waterHeight); // todo make this pretty
 
