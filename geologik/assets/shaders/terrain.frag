@@ -41,8 +41,6 @@ vec3 color_from_height(uint terrainType, uint height)
 
 void main()
 {
-  vec3 normal;
-  {
   uint topIdx = _index - width;
   uint bottomIdx = _index + width;
   uint leftIdx = _index - 1;
@@ -50,7 +48,7 @@ void main()
 
   float yDiff = (float(height_from_idx(topIdx)) - float(height_from_idx(bottomIdx))) * 0.5;
   float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
-  normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
+  vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
  
   uint mask = 0xFFFF;
 
@@ -69,35 +67,6 @@ void main()
       break;
     }
   }
-}
-  vec3 col;
-  {
-    uint i = _index;
-    uint topIdx = i - width;
-      uint bottomIdx = i + width;
-      uint leftIdx = i - 1;
-      uint rightIdx = i + 1;
 
-      float yDiff = (float(height_from_idx(topIdx)) - float(height_from_idx(bottomIdx))) * 0.5;
-      float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
-      vec3 normalB = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
-
-      const uint maxHeight = 15000;
-      uint height = clamp(height_from_idx(i) - 10000, uint(0), maxHeight);
-
-      const float minTemp = -10;
-      const float maxTemp = 30;
-      const float sunMaxTemp = 0;
-
-      float temp = mix(minTemp, maxTemp, 1 - height * (1 / maxHeight));
-      float sunAllignment = dot(normalB, sunDir);
-
-      if (sunAllignment > 0)
-        temp += sunAllignment * sunMaxTemp;
-
-      col = vec3((temp - minTemp) / ((maxTemp + sunMaxTemp) - minTemp), 0, 0);
-  }
-
-  //color = vec4(c * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1);
-  color = vec4(col * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1);
+  color = vec4(c * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1);
 }

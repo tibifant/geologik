@@ -76,13 +76,14 @@ void main()
       float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
       vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
 
-      uint height = height_from_idx(i);
+      const uint maxHeight = 13000;
+      uint height = clamp(height_from_idx(i) - 10000, uint(0), maxHeight);
 
-      const float minTemp = -200;
-      const float maxTemp = 20;
-      const float sunMaxTemp = 5;
+      const float minTemp = -10;
+      const float maxTemp = 22;
+      const float sunMaxTemp = 8;
 
-      float temp = mix(minTemp, maxTemp, clamp(height * 0.0018, 0, 1));
+      float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
       float sunAllignment = dot(normal, sunDir);
 
       if (sunAllignment > 0)
@@ -103,7 +104,7 @@ void main()
       uint val = (~evaporation + 1) << 16;
       atomicAdd(tiles[i].heights[0], val);
 
-      // TODO melt snow...
+      // TODO melt snow... & turn rain into snow & maybe turn water into snow, when too cold
     }
   }
 }
