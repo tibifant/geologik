@@ -96,7 +96,7 @@ void main()
       const uint maxHeight = 13000;
       float height = clamp(float(height_from_idx(i)) - 10000, float(0), float(maxHeight));
 
-      const float minTemp = -10;
+      const float minTemp = -7;
       const float maxTemp = 22;
       const float sunMaxTemp = 8;
 
