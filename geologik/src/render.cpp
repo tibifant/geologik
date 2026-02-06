@@ -46,6 +46,10 @@ void camera_3d_free_floating_update(camera_3d_free_floating &cam);
 
 //////////////////////////////////////////////////////////////////////////
 
+void render_drawSky();
+
+//////////////////////////////////////////////////////////////////////////
+
 static struct
 {
   struct
@@ -62,6 +66,11 @@ static struct
     shader renderShader;
     vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer;
   } terrain;
+
+  struct
+  {
+    shader skyShader;
+  } sky;
 
   struct
   {
@@ -90,16 +99,16 @@ void camera_3d_free_floating_create(camera_3d_free_floating &cam, const vec3f po
   cam.position = position;
   cam.direction = direction;
 
-  cam.projection = matrix::PerspectiveFovRH(lsHALFPIf * 0.75f, windowSize.AspectRatio(), 0.001f, 1024 * 8.f);
+  cam.projection = matrix::PerspectiveFovRH(lsHALFPIf * 0.75f, windowSize.AspectRatio(), 0.1f, 1024 * 8.f);
   camera_3d_free_floating_update(cam);
 }
 
 void camera_3d_free_floating_move(camera_3d_free_floating &cam, const vec3f dir)
 {
   const matrix localView = matrix::LookAtRH(vec3f(), cam.direction, vec3f(0, 0, 1)).Inverse(); // tranforming view space to world space
-  //cam.position += (vec3f)(localView.TransformVector3(-dir.xzy())); // .xzy to match view space
-  cam.movVelocity = lsLerp(cam.movVelocity, (vec3f)(localView.TransformVector3(-dir.xzy())), 0.01f);
-  cam.position = cam.position + cam.movVelocity; // .xzy to match view space
+  cam.position += (vec3f)(localView.TransformVector3(-dir.xzy())); // .xzy to match view space
+  //cam.movVelocity = lsLerp(cam.movVelocity, (vec3f)(localView.TransformVector3(-dir.xzy())), 0.01f);
+  //cam.position = cam.position + cam.movVelocity; // .xzy to match view space
 }
 
 void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f dir)
@@ -109,8 +118,8 @@ void camera_3d_free_floating_rotate(camera_3d_free_floating &cam, const vec2f di
 
 void camera_3d_free_floating_set_rotation(camera_3d_free_floating &cam, const vec2f dir)
 {
-  cam.rotVelocity = lsLerp(cam.rotVelocity, vec3f(lsSin(-dir.x), lsCos(-dir.x) * lsCos(dir.y), lsSin(dir.y)), 0.01f);
-  cam.direction = cam.rotVelocity;
+  //cam.rotVelocity = lsLerp(cam.rotVelocity, vec3f(lsSin(-dir.x), lsCos(-dir.x) * lsCos(dir.y), lsSin(dir.y)), 0.01f);
+  cam.direction = vec3f(lsSin(-dir.x), lsCos(-dir.x) * lsCos(dir.y), lsSin(dir.y));
 }
 
 void camera_3d_free_floating_update(camera_3d_free_floating &cam)
@@ -191,6 +200,11 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     LS_ERROR_CHECK(set_terrain_vertexData());
   }
 
+  // Sky.
+  {
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.sky.skyShader, "shaders/sky.vert", "shaders/sky.frag"));
+  }
+
   // Create Plane.
   {
     LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.plane.shader, "shaders/plane.vert", "shaders/plane.frag"));
@@ -238,6 +252,10 @@ void render_startFrame(lsAppState *pAppState)
   framebuffer_bind(&_Render.frameBuffer);
 
   render_clearColor(vec4f(vec3f(0.5f, 0.7f, 0.9f) * lsMax(vec3f(0), vec3f(_Render.sunDir.z)), 1));
+
+  glDisable(GL_CULL_FACE);
+
+  render_drawSky();
   render_clearDepth();
 
   render_setDepthMode(rCR_Less);
@@ -297,6 +315,17 @@ void render_draw3DQuad(const matrix &model, const render_textureId textureIndex)
   render_drawQuad(model * _Render.vp, textureIndex);
 }
 
+void render_drawSky()
+{
+  shader_bind(&_Render.sky.skyShader);
+
+  const matrix invMat = matrix::InverseViewProjection(_Render.camera.view, _Render.camera.projection);
+  shader_setUniform(&_Render.sky.skyShader, "inverseMatrix", invMat);
+  shader_setUniform(&_Render.sky.skyShader, "direction", -_Render.sunDir.Normalize());
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 void render_drawTerrain(const uint32_t width)
 {
   glEnable(GL_CULL_FACE);
@@ -339,15 +368,17 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     glFlush();
     glFinish();
   }
-  
+
   // erosion
   {
     shader_bind(&_Render.erosion.erosionShader);
     shader_setUniform(&_Render.erosion.erosionShader, "width", width);
-    //shader_setUniform(&_Render.erosion.erosionShader, "hashValue", uint32_t(lsGetRand()));
-    
+    shader_setUniform(&_Render.erosion.erosionShader, "hashValue", uint32_t(lsGetRand()));
+
     shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
 
+    glFlush();
+    glFinish();
   }
 
   // fast erosion

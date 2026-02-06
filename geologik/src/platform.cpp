@@ -82,6 +82,7 @@ lsResult lsAppState_Create(lsAppState *pAppState, const char *title, const vec2s
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+  SDL_ShowCursor(SDL_DISABLE);
 
   // Set Maxiumum Depth Precision.
   {

@@ -14,7 +14,7 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform uint width;
-//uniform uint hashValue;
+uniform uint hashValue;
 
 const uint mask = 0xFFFF;
 
@@ -68,7 +68,7 @@ void main()
     uint selfWater = self.heights[0] >> 16;
 
     // do we have water? if no? skip.
-    if (selfWater == 0)
+    if (selfWater == 0 || (hash(x, y, hashValue) & 15) <= 3)
       continue;
 
     ivec2 selfPos = ivec2(x, y);
@@ -80,7 +80,7 @@ void main()
     {
       ivec2 tilePos = selfPos + neighbours[i];
 
-      if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x > width - 1 || tilePos.y > width - 1)
+      if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= width || tilePos.y >= width)
         continue;
 
       // get tile
