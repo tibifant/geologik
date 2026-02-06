@@ -304,7 +304,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
   GLint status;
   glGetShaderiv(vertexShaderHandle, GL_COMPILE_STATUS, &status);
-
+  
   if (status != GL_TRUE)
   {
     char buffer[1024];

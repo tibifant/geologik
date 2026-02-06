@@ -50,7 +50,6 @@ static struct
   {
     shader erosionShader;
     shader environmentShader;
-    shader rainShader;
     gpu_buffer gpuBuffer;
 
     texture temperatureTex;
@@ -170,7 +169,6 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
-    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.rainShader, "shaders/rain.comp"));
 
     //texture_create(&_Render.erosion.temperatureTex);
 
@@ -318,14 +316,18 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 {
   // thaw and/or evaporate water
   {
-    bool thaw = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M);
-    bool evaporate = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_N);
+    const bool thaw = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M);
+    const bool evaporate = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_N);
+    const bool rain = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P);
 
     shader_bind(&_Render.erosion.environmentShader);
     shader_setUniform(&_Render.erosion.environmentShader, "width", width);
     shader_setUniform(&_Render.erosion.environmentShader, "meltSnow", thaw);
     shader_setUniform(&_Render.erosion.environmentShader, "evaporateWater", evaporate);
     shader_setUniform(&_Render.erosion.environmentShader, "sunDir", _Render.sunDir);
+    shader_setUniform(&_Render.erosion.environmentShader, "hashValue", uint32_t(lsGetRand()));
+    shader_setUniform(&_Render.erosion.environmentShader, "rain", rain);
+
 
     shader_dispatch_compute(&_Render.erosion.environmentShader, width, 1, 1);
 
@@ -352,16 +354,6 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
       glFinish();
       shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
     }
-  }
-
-  // rain
-  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P))
-  {
-    shader_bind(&_Render.erosion.rainShader);
-    shader_setUniform(&_Render.erosion.rainShader, "width", width);
-    //shader_setUniform(&_Render.erosion.rainShader, "hashValue", uint32_t(lsGetRand()));
-
-    shader_dispatch_compute(&_Render.erosion.rainShader, width, 1, 1);
   }
 }
 

@@ -14,9 +14,11 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform uint width;
+uniform uint hashValue;
 uniform vec3 sunDir;
 uniform bool meltSnow;
 uniform bool evaporateWater;
+uniform bool rain;
 
 uint height_from_idx(uint idx)
 {
@@ -32,6 +34,20 @@ uint height_from_idx(uint idx)
   return height;
 }
 
+const uint phi = 0x61C88647;
+
+uint pcg_hash(uint x)
+{
+  uint state = x * 747796405u + 2891336453u;
+  uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+  return (word >> 22u) ^ word;
+}
+
+uint hash(uint x, uint y, uint v)
+{
+  return pcg_hash(((x * phi + y) * phi + v) * phi);
+}
+
 void main()
 {
   uint lineIdx = gl_GlobalInvocationID.x;
@@ -41,11 +57,10 @@ void main()
   {
     tile currentTile = tiles[i];
     uint waterHeight = currentTile.heights[0] >> 16;
+    uint snowHeight = currentTile.heights[0] & mask;
 
     if (meltSnow)
     {
-      uint snowHeight = currentTile.heights[0] & mask;
-
       if (snowHeight > 0)
       {
         uint meltAmount = max(uint(snowHeight * 0.02), 1); // max snowheight = 100
@@ -65,7 +80,8 @@ void main()
         atomicAdd(tiles[i].heights[0], val);
       }
     }
-    else
+    
+    if (!meltSnow && !evaporateWater)
     {
       uint topIdx = i - width;
       uint bottomIdx = i + width;
@@ -89,20 +105,54 @@ void main()
       if (sunAllignment > 0)
         temp += sunAllignment * sunMaxTemp;
 
-      if (temp <= 0 || waterHeight == 0)
+      if (rain)
+      {
+        uint rand = hash(i - (lineIdx * width), lineIdx, hashValue);
+
+        if ((rand & 3) <= 1)
+        {
+          uint addVal = rand & 4;
+
+          if (temp > 0)
+            atomicAdd(tiles[i].heights[0], addVal << 16);
+          else
+            atomicAdd(tiles[i].heights[0], addVal);
+        }
+      }
+
+      if (temp <= 0)
         continue;
       
-      uint evaporation = 1;
+      if (snowHeight > 0)
+      {
+        uint meltAmount = 1;
 
-      if (temp > 15)
-        evaporation = 2;
-      else if (temp > 20)
-        evaporation = 3;
+        if (temp > 10)
+          meltAmount = 3;
+        if (temp > 3)
+          meltAmount = 2;
+        
+        meltAmount = clamp(meltAmount, 0, snowHeight); // todo make this pretty
 
-      evaporation = clamp(evaporation, 0, waterHeight);
+        uint loVal = ~meltAmount + 1;
+        uint hiVal = (meltAmount - 1) << 16;
+        uint val = hiVal | (loVal & mask);
+        atomicAdd(tiles[i].heights[0], val);
+      }
+      else if (waterHeight > 0)
+      {
+        uint evaporation = 1;
 
-      uint val = (~evaporation + 1) << 16;
-      atomicAdd(tiles[i].heights[0], val);
+        if (temp > 20)
+          evaporation = 3;
+        if (temp > 15)
+          evaporation = 2;
+
+        evaporation = clamp(evaporation, 0, waterHeight); // todo make this pretty
+
+        uint val = (~evaporation + 1) << 16;
+        atomicAdd(tiles[i].heights[0], val);
+      }
 
       // TODO melt snow... & turn rain into snow & maybe turn water into snow, when too cold
     }
