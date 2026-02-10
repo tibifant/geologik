@@ -59,6 +59,8 @@ static struct
     gpu_buffer gpuBuffer;
 
     texture temperatureTex;
+
+    bool firstCall = true;
   } erosion;
 
   struct
@@ -184,12 +186,12 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
 
-    //texture_create(&_Render.erosion.temperatureTex);
+    texture_create(&_Render.erosion.temperatureTex);
 
-    //uint8_t *pTex;
-    //LS_ERROR_CHECK(lsAllocZero(&pTex, (terrainWidth / 8) * (terrainWidth / 8)));
-    //texture_set(&_Render.erosion.temperatureTex, pTex, vec2s((terrainWidth / 8)));
-    //lsFreePtr(&pTex);
+    float_t *pData;
+    LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 8) * terrainWidth)); // 1/8th of the resolution
+    texture_set(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 8, terrainWidth)));
+    lsFreePtr(&pData);
   }
 
   // Create Terrain.
@@ -275,6 +277,8 @@ void render_endFrame(lsAppState *pAppState)
 
 void render_destroy()
 {
+  texture_destroy(&_Render.erosion.temperatureTex);
+
   for (auto _item : _Render.textures)
     texture_destroy(_item.pItem);
 
@@ -348,13 +352,16 @@ void render_drawTerrain(const uint32_t width)
 
 void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
 {
-  // thaw and/or evaporate water
+  // thawing, evaporation, rain
   {
     const bool thaw = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M);
     const bool evaporate = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_N);
     const bool rain = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P);
 
     shader_bind(&_Render.erosion.environmentShader);
+    texture_bind(&_Render.erosion.temperatureTex, 0);
+    shader_setUniform(&_Render.erosion.environmentShader, "texture", &_Render.erosion.temperatureTex);
+    shader_setUniform(&_Render.erosion.environmentShader, "factor", _Render.erosion.firstCall ? 1.f : 0.7f);
     shader_setUniform(&_Render.erosion.environmentShader, "width", width);
     shader_setUniform(&_Render.erosion.environmentShader, "meltSnow", thaw);
     shader_setUniform(&_Render.erosion.environmentShader, "evaporateWater", evaporate);
@@ -362,11 +369,13 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     shader_setUniform(&_Render.erosion.environmentShader, "hashValue", uint32_t(lsGetRand()));
     shader_setUniform(&_Render.erosion.environmentShader, "rain", rain);
 
-
     shader_dispatch_compute(&_Render.erosion.environmentShader, width, 1, 1);
 
     glFlush();
     glFinish();
+
+    if (_Render.erosion.firstCall)
+      _Render.erosion.firstCall = false;
   }
 
   // erosion

@@ -13,6 +13,9 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
+layout(binding = 0, r32f) uniform image2D texture;
+uniform float factor;
+
 uniform uint width;
 uniform uint hashValue;
 uniform vec3 sunDir;
@@ -81,49 +84,53 @@ void main()
         atomicAdd(tiles[i].heights[0], val);
       }
     }
-    
-    if (!meltSnow && !evaporateWater)
+
+    // calculate temp according to current conditions
+    uint topIdx = i - width;
+    uint bottomIdx = i + width;
+    uint leftIdx = i - 1;
+    uint rightIdx = i + 1;
+
+    float yDiff = (float(height_from_idx(topIdx)) - float(height_from_idx(bottomIdx))) * 0.5;
+    float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
+    vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
+
+    const uint maxHeight = 13000;
+    float height = clamp(float(height_from_idx(i)) - 10000, float(0), float(maxHeight));
+
+    const float minTemp = -7;
+    const float maxTemp = 22;
+    const float sunMaxTemp = 8;
+
+    float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
+    float sunAllignment = dot(normal, sunDir);
+
+    if (sunAllignment > 0)
+      temp += sunAllignment * sunMaxTemp;
+
+    // mix with last temp
+    vec2 pos = vec2((i - lineIdx * width) / 8, lineIdx); // bullshit this needs to be every 8th value...
+    temp = mix(imageLoad(texture, pos), temp, factor);
+    // set texture to new temp
+    imageStore(texture, pos, temp);
+
+    if (rain)
     {
-      uint topIdx = i - width;
-      uint bottomIdx = i + width;
-      uint leftIdx = i - 1;
-      uint rightIdx = i + 1;
+      uint rand = hash(i - (lineIdx * width), lineIdx, hashValue);
 
-      float yDiff = (float(height_from_idx(topIdx)) - float(height_from_idx(bottomIdx))) * 0.5;
-      float xDiff = (float(height_from_idx(rightIdx)) - float(height_from_idx(leftIdx))) * 0.5;
-      vec3 normal = normalize(vec3(xDiff, yDiff, 100 /* factor from vertex shader */));
-
-      const uint maxHeight = 13000;
-      float height = clamp(float(height_from_idx(i)) - 10000, float(0), float(maxHeight));
-
-      const float minTemp = -7;
-      const float maxTemp = 22;
-      const float sunMaxTemp = 8;
-
-      float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
-      float sunAllignment = dot(normal, sunDir);
-
-      if (sunAllignment > 0)
-        temp += sunAllignment * sunMaxTemp;
-
-      if (rain)
+      if ((rand & 3) <= 1)
       {
-        uint rand = hash(i - (lineIdx * width), lineIdx, hashValue);
+        uint addVal = rand & 4;
 
-        if ((rand & 3) <= 1)
-        {
-          uint addVal = rand & 4;
-
-          if (temp > 0)
-            atomicAdd(tiles[i].heights[0], addVal << 16);
-          else
-            atomicAdd(tiles[i].heights[0], addVal);
-        }
+        if (temp > 0)
+          atomicAdd(tiles[i].heights[0], addVal << 16);
+        else
+          atomicAdd(tiles[i].heights[0], addVal);
       }
-
-      if (temp <= 0)
-        continue;
-      
+    }
+    
+    if (!meltSnow && !evaporateWater && temp > 0) // TODO calc temp always to update texture
+    {      
       if (snowHeight > 0)
       {
         uint meltAmount = 1;

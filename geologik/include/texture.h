@@ -9,6 +9,7 @@ enum texture_format_type
   tft_unsigned_invalid,
   tft_u8,
   tft_u16,
+  tft_f32r,
 };
 
 struct texture
@@ -29,5 +30,6 @@ lsResult texture_set(texture *pTexture, const char *filename);
 lsResult texture_set_raw(texture *pTexture, const void *pData, texture_format_type textureFormatType, const vec2s resolution);
 lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolution);
 lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resolution);
+lsResult texture_set(texture *pTexture, const float_t *pData, const vec2s resolution);
 lsResult texture_bind(texture *pTexture, const uint32_t textureUnit);
 void texture_destroy(_Out_ texture *pTexture);
