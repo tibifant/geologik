@@ -57,8 +57,12 @@ void main()
   uint lineIdx = gl_GlobalInvocationID.x;
   uint mask = 0xFFFF;
 
+  int texX = -1;
   for (uint i = lineIdx * width; i < (lineIdx + 1) * width; i++)
   {
+    if (i % 8 == 0)
+      texX++;
+
     tile currentTile = tiles[i];
     uint waterHeight = currentTile.heights[0] >> 16;
     uint snowHeight = currentTile.heights[0] & mask;
@@ -109,7 +113,7 @@ void main()
       temp += sunAllignment * sunMaxTemp;
 
     // mix with last temp
-    vec2 pos = vec2((i - lineIdx * width) / 8, lineIdx); // bullshit this needs to be every 8th value...
+    vec2 pos = vec2(texX, lineIdx); // bullshit this needs to be every 8th value...
     temp = mix(imageLoad(texture, pos), temp, factor);
     // set texture to new temp
     imageStore(texture, pos, temp);

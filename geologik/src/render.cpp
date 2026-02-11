@@ -188,9 +188,9 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     texture_create(&_Render.erosion.temperatureTex);
 
-    float_t *pData;
+    uint8_t *pData;
     LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 8) * terrainWidth)); // 1/8th of the resolution
-    texture_set(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 8, terrainWidth)));
+    texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 8, terrainWidth)));
     lsFreePtr(&pData);
   }
 
