@@ -58,6 +58,7 @@ static struct
     shader environmentShader;
     gpu_buffer gpuBuffer;
 
+    shader temperatureShader;
     texture temperatureTex;
 
     bool firstCall = true;
@@ -185,6 +186,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.erosion.temperatureShader, "shaders/temperature.frag")); // ehhh is it allowed to just have a frag shader?
 
     texture_create(&_Render.erosion.temperatureTex);
 
