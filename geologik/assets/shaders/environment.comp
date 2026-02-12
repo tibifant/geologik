@@ -1,7 +1,6 @@
 #version 430 core
 
-layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
-// 1x pro zeile
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in; // 1x pro zeile
 
 struct tile
 {
@@ -13,7 +12,7 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
-uniform image2D texture;
+uniform layout(binding = 0, r8) image2D texture;
 
 uniform uint width;
 uniform uint hashValue;
@@ -89,7 +88,7 @@ void main()
     }
 
     // TODO interpolate temp from texture
-    float temp = imageRead(texture, vec2(texX, lineIdx / 8));
+    float temp = imageLoad(texture, ivec2(texX, lineIdx / 8)).x;
 
     if (rain)
     {
