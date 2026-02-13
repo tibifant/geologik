@@ -1,6 +1,6 @@
 #version 430 core
 
-layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in; // once per texture row
 
 struct tile
 {
@@ -12,7 +12,7 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
-uniform layout(binding = 0, r8) image2D texture;
+uniform layout(r8) image2D texture;
 
 uniform float lerpFactor;
 uniform uint width;
@@ -36,7 +36,6 @@ uint height_from_idx(uint idx)
 void main()
 {
   const uint y = gl_GlobalInvocationID.x;
-  const uint offset = y * textureWidth;
 
   for (uint x = 0; x < textureWidth; x++)
   {
@@ -50,15 +49,16 @@ void main()
     uvec2 samplePosLeft = samplePos + uvec2(2, 4);
 
     uint heightTop = height_from_idx(samplePosTop.y * width + samplePosTop.x);
-    uint heightRight = height_from_idx(samplePosRight.y * width + samplePosRight.x);
-    uint heightBottom = height_from_idx(samplePosBottom.y * width + samplePosBottom.x);
-    uint heightLeft = height_from_idx(samplePosLeft.y * width + samplePosLeft.x);
+    //uint heightRight = height_from_idx(samplePosRight.y * width + samplePosRight.x);
+    //uint heightBottom = height_from_idx(samplePosBottom.y * width + samplePosBottom.x);
+    //uint heightLeft = height_from_idx(samplePosLeft.y * width + samplePosLeft.x);
 
-    uint avgHeight = (heightTop + heightRight + heightBottom + heightLeft) / 4;
+    //uint avgHeight = (heightTop + heightRight + heightBottom + heightLeft) / 4;
+    uint avgHeight = heightTop;
 
-    float yDiff = (float(heightTop) - float(heightBottom)) * 0.5; // is this an accaptable approximation
-    float xDiff = (float(heightRight) - float(heightLeft)) * 0.5;
-    vec3 avgNorm = normalize(vec3(xDiff, yDiff, 100));
+    //float yDiff = (float(heightTop) - float(heightBottom)) * 0.5; // is this an acceptable approximation
+    //float xDiff = (float(heightRight) - float(heightLeft)) * 0.5;
+    //vec3 avgNorm = normalize(vec3(xDiff, yDiff, 100));
 
     // calc temp
     const float minTemp = -7;
@@ -69,16 +69,16 @@ void main()
     float height = clamp(float(avgHeight) - 10000, float(0), float(maxHeight));
 
     float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
-    float sunAllignment = dot(avgNorm, sunDir);
+    //float sunAllignment = dot(avgNorm, sunDir);
 
-    if (sunAllignment > 0)
-      temp += sunAllignment * sunMaxTemp;
+    //if (sunAllignment > 0)
+    //  temp += sunAllignment * sunMaxTemp;
 
     // mix with last temp
-    float lastTemp = imageLoad(texture, texCoord).x;
-    temp = mix(temp, lastTemp, lerpFactor);
+    //float lastTemp = imageLoad(texture, texCoord).x;
+    //temp = mix(temp, lastTemp, lerpFactor);
 
     // set new temp
-    imageStore(texture, texCoord, vec4(temp, 0, 0, 0));
+    imageStore(texture, texCoord, vec4(x, 0, 0, 0));
   }
 }

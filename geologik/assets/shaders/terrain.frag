@@ -12,6 +12,7 @@ layout(binding = 0, std430) buffer data
 
 uniform uint width;
 uniform vec3 sunDir;
+uniform layout(r8) image2D texture;
 
 in flat uint _index;
 
@@ -68,5 +69,12 @@ void main()
     }
   }
 
-  color = vec4(c * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1);
+  uint y = _index % width;
+  ivec2 pos = ivec2(_index - y * width, y);
+  //float t = (imageLoad(texture, pos / 8).x + 8) / (30 - 8);
+  float t = imageLoad(texture, pos / 8).x / (width / 8);
+  //float t = imageLoad(texture, pos / 8).x;
+
+  //color = vec4(vec3(t, 0, 0) * c * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1); // uncomment sundir in render.cpp!!!
+  color = vec4(vec3(t, 0, 0), 1);// * vec3(dot(sunDir, normal) * 0.5 + 0.5), 1);
 }

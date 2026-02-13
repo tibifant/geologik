@@ -12,7 +12,7 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
-uniform layout(binding = 0, r8) image2D texture;
+uniform layout(r8) image2D texture;
 
 uniform uint width;
 uniform uint hashValue;
@@ -53,13 +53,13 @@ void main()
 {
   // TODO clean up & use texture
   uint lineIdx = gl_GlobalInvocationID.x;
-  uint mask = 0xFFFF;
+  const uint mask = 0xFFFF;
+  ivec2 texCoord = ivec2(-1, lineIdx / 8);
 
-  int texX = -1;
   for (uint i = lineIdx * width; i < (lineIdx + 1) * width; i++)
   {
     if (i % 8 == 0)
-      texX++;
+      texCoord.x++;
 
     tile currentTile = tiles[i];
     uint waterHeight = currentTile.heights[0] >> 16;
@@ -88,7 +88,7 @@ void main()
     }
 
     // TODO interpolate temp from texture
-    float temp = imageLoad(texture, ivec2(texX, lineIdx / 8)).x;
+    float temp = imageLoad(texture, texCoord).x;
 
     if (rain)
     {
