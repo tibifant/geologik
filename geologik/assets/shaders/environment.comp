@@ -49,17 +49,41 @@ uint hash(uint x, uint y, uint v)
   return pcg_hash(((x * phi + y) * phi + v) * phi);
 }
 
+float interpolate_temperature(uvec2 pos, uint tile_idx)
+{
+  const ivec2 maxTexWidth = ivec2(width / 8 - 1);
+
+  vec2 fTexPos = max(vec2(pos) / vec2(8.0) - vec2(0.5), vec2(0, 0));
+  ivec2 texPos = ivec2(fTexPos);
+
+  float tSelf = imageLoad(texture, texPos).x;
+  float tRight = imageLoad(texture, min(texPos + ivec2(1, 0), maxTexWidth)).x;
+  float tBottom = imageLoad(texture, min(texPos + ivec2(0, 1), maxTexWidth)).x;
+  float tBottomRight = imageLoad(texture, min(texPos + ivec2(1, 1), maxTexWidth)).x;
+  
+  vec2 fac = mod(fTexPos, 1.0);
+  
+  float top = mix(tSelf, tRight, fac.x);
+  float bottom = mix(tBottom, tBottomRight, fac.x);
+  float total = mix(top, bottom, fac.y);
+
+  tiles[tile_idx].heights[0] = 0;
+  tiles[tile_idx].heights[1] = uint(pos.y * 10);
+  tiles[tile_idx].heights[2] = 0;
+  tiles[tile_idx].heights[3] = 0;
+
+  return total;
+}
+
 void main()
 {
-  // TODO clean up & use texture
-  uint lineIdx = gl_GlobalInvocationID.x;
   const uint mask = 0xFFFF;
-  ivec2 texCoord = ivec2(-1, lineIdx / 8);
+  uint y = gl_GlobalInvocationID.x;
+  uint offset = y * width;
 
-  for (uint i = lineIdx * width; i < (lineIdx + 1) * width; i++)
-  {
-    if (i % 8 == 0)
-      texCoord.x++;
+  for (uint x = 0; x < width; x++)
+  {    
+    uint i = offset + x;
 
     tile currentTile = tiles[i];
     uint waterHeight = currentTile.heights[0] >> 16;
@@ -87,12 +111,11 @@ void main()
       }
     }
 
-    // TODO interpolate temp from texture
-    float temp = imageLoad(texture, texCoord).x;
+    float temp = interpolate_temperature(uvec2(x, y), i);
 
     if (rain)
     {
-      uint rand = hash(i - (lineIdx * width), lineIdx, hashValue);
+      uint rand = hash(x, y, hashValue);
 
       if ((rand & 3) <= 1)
       {

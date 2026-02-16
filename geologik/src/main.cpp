@@ -30,7 +30,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
 
   LS_ERROR_CHECK(render_init(&_AppState, width));
-  
+
   {
     const float_t updateTimeMs = 1000.0f / 120.f;
     size_t frameCount = 0;
@@ -46,7 +46,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       {
         print("Reloading shader...\n");
         system("xcopy /Q /E /Y /I ..\\geologik\\assets\\shaders shaders"); // horrible way to copy shaders over to builds/bin if we haven't recompiled.
-        LS_ERROR_CHECK(render_reload_shader()); 
+        render_reload_shader();
       }
 #endif
 
@@ -57,7 +57,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
         render_drawTerrain(width);
         render_endFrame(&_AppState);
       }
-      
+
       const int64_t afterCPU = lsGetCurrentTimeNs();
 
       render_finalize();

@@ -151,7 +151,24 @@ lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit)
 
   pTexture->textureUnit = textureUnit;
 
-  glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R8); // TODO make types for textures.
+  switch (pTexture->textureFormatType)
+  {
+  case tft_u8:
+    glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8); // only read write supported atm - other options available
+    break;
+
+  case tft_u16:
+    glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16); // only read write supported atm - other options available
+    break;
+
+  case tft_u8r:
+    glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R8); // only read write supported atm - other options available
+    break;
+
+  default:
+    lsAssert(false); // not implemented.
+    break;
+  }
 
 epilogue:
   return result;
