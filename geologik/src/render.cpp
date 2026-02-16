@@ -175,7 +175,7 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
   // Create Erosion Buffer & Shader.
   {
     terrain t;
-
+    
     LS_ERROR_CHECK(terrain_init(&t, (uint16_t)terrainWidth));
     LS_ERROR_CHECK(terrain_generate(&t));
 
@@ -192,6 +192,10 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
     uint8_t *pData;
     LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 8) * (terrainWidth / 8)));
+
+    //for (size_t i = 0; i < (terrainWidth / 8) * (terrainWidth / 8); i++)
+    //  pData[i] = 128;
+
     texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 8, terrainWidth / 8)));
     lsFreePtr(&pData);
   }
@@ -338,12 +342,12 @@ void render_drawTerrain(const uint32_t width)
   glCullFace(GL_FRONT);
 
   shader_bind(&_Render.terrain.renderShader);
-  texture_bind(&_Render.erosion.temperatureTex, 0);
+  //texture_bind_image(&_Render.erosion.temperatureTex, 0);
 
-  shader_setUniform(&_Render.terrain.renderShader, "texture", &_Render.erosion.temperatureTex);
+  //shader_setUniform(&_Render.terrain.renderShader, "texture", &_Render.erosion.temperatureTex);
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
-  //shader_setUniform(&_Render.terrain.renderShader, "sunDir", _Render.sunDir);
+  shader_setUniform(&_Render.terrain.renderShader, "sunDir", _Render.sunDir);
 
   for (uint32_t y = 0; y < width; y += quadCountY)
   {
@@ -363,9 +367,9 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     texture_bind(&_Render.erosion.temperatureTex, 0);
   
     shader_setUniform(&_Render.erosion.temperatureShader, "texture", &_Render.erosion.temperatureTex);
-    //shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.7f);
-    //shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);
-    //shader_setUniform(&_Render.erosion.temperatureShader, "width", width);
+    shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.7f);
+    shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);
+    shader_setUniform(&_Render.erosion.temperatureShader, "width", width);
     shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", width / 8);
   
     shader_dispatch_compute(&_Render.erosion.temperatureShader, width / 8, 1, 1);
@@ -381,7 +385,7 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     const bool rain = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P);
 
     shader_bind(&_Render.erosion.environmentShader);
-    texture_bind(&_Render.erosion.temperatureTex, 0);
+    texture_bind_image(&_Render.erosion.temperatureTex, 0);
     shader_setUniform(&_Render.erosion.environmentShader, "texture", &_Render.erosion.temperatureTex);
     shader_setUniform(&_Render.erosion.environmentShader, "width", width);
     shader_setUniform(&_Render.erosion.environmentShader, "meltSnow", thaw);

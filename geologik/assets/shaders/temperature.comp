@@ -49,16 +49,15 @@ void main()
     uvec2 samplePosLeft = samplePos + uvec2(2, 4);
 
     uint heightTop = height_from_idx(samplePosTop.y * width + samplePosTop.x);
-    //uint heightRight = height_from_idx(samplePosRight.y * width + samplePosRight.x);
-    //uint heightBottom = height_from_idx(samplePosBottom.y * width + samplePosBottom.x);
-    //uint heightLeft = height_from_idx(samplePosLeft.y * width + samplePosLeft.x);
+    uint heightRight = height_from_idx(samplePosRight.y * width + samplePosRight.x);
+    uint heightBottom = height_from_idx(samplePosBottom.y * width + samplePosBottom.x);
+    uint heightLeft = height_from_idx(samplePosLeft.y * width + samplePosLeft.x);
 
-    //uint avgHeight = (heightTop + heightRight + heightBottom + heightLeft) / 4;
-    uint avgHeight = heightTop;
+    uint avgHeight = (heightTop + heightRight + heightBottom + heightLeft) / 4;
 
-    //float yDiff = (float(heightTop) - float(heightBottom)) * 0.5; // is this an acceptable approximation
-    //float xDiff = (float(heightRight) - float(heightLeft)) * 0.5;
-    //vec3 avgNorm = normalize(vec3(xDiff, yDiff, 100));
+    float yDiff = (float(heightTop) - float(heightBottom)) * 0.5; // is this an acceptable approximation
+    float xDiff = (float(heightRight) - float(heightLeft)) * 0.5;
+    vec3 avgNorm = normalize(vec3(xDiff, yDiff, 100));
 
     // calc temp
     const float minTemp = -7;
@@ -69,16 +68,16 @@ void main()
     float height = clamp(float(avgHeight) - 10000, float(0), float(maxHeight));
 
     float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
-    //float sunAllignment = dot(avgNorm, sunDir);
+    float sunAllignment = dot(avgNorm, sunDir);
 
-    //if (sunAllignment > 0)
-    //  temp += sunAllignment * sunMaxTemp;
+    if (sunAllignment > 0)
+      temp += sunAllignment * sunMaxTemp;
 
     // mix with last temp
-    //float lastTemp = imageLoad(texture, texCoord).x;
-    //temp = mix(temp, lastTemp, lerpFactor);
+    float lastTemp = imageLoad(texture, texCoord).x;
+    temp = mix(temp, lastTemp, lerpFactor);
 
     // set new temp
-    imageStore(texture, texCoord, vec4(x, 0, 0, 0));
+    imageStore(texture, texCoord, vec4(temp, 0, 0, 0));
   }
 }

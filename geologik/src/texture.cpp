@@ -141,6 +141,22 @@ epilogue:
   return result;
 }
 
+lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit)
+{
+  lsResult result = lsR_Success;
+
+  LS_ERROR_IF(pTexture == nullptr, lsR_InvalidParameter);
+  LS_ERROR_IF(!pTexture->initialized, lsR_ResourceStateInvalid);
+  LS_ERROR_IF(!pTexture->uploaded, lsR_ResourceStateInvalid);
+
+  pTexture->textureUnit = textureUnit;
+
+  glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R8); // TODO make types for textures.
+
+epilogue:
+  return result;
+}
+
 void texture_destroy(_Out_ texture *pTexture)
 {
   if (pTexture == nullptr || !pTexture->initialized)

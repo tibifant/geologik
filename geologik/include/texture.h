@@ -32,4 +32,5 @@ lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolu
 lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resolution);
 lsResult texture_set_single(texture *pTexture, const uint8_t *pData, const vec2s resolution);
 lsResult texture_bind(texture *pTexture, const uint32_t textureUnit);
+lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit);
 void texture_destroy(_Out_ texture *pTexture);
