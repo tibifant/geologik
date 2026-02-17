@@ -42,11 +42,11 @@ void main()
     ivec2 texCoord = ivec2(x, y);
 
     // sample height & normals for average
-    uvec2 samplePos = texCoord * uvec2(8, 8);
-    uvec2 samplePosTop = samplePos + uvec2(4, 2);
-    uvec2 samplePosRight = samplePos + uvec2(6, 4);
-    uvec2 samplePosBottom = samplePos + uvec2(4, 6);
-    uvec2 samplePosLeft = samplePos + uvec2(2, 4);
+    uvec2 samplePos = texCoord * uvec2(4, 4);// uvec2(8, 8);
+    uvec2 samplePosTop = samplePos + uvec2(2, 0);//uvec2(4, 2);
+    uvec2 samplePosRight = samplePos + uvec2(3, 2);//uvec2(6, 4);
+    uvec2 samplePosBottom = samplePos + uvec2(2, 3);//uvec2(4, 6);
+    uvec2 samplePosLeft = samplePos + uvec2(0, 2);//uvec2(2, 4);
 
     uint heightTop = height_from_idx(samplePosTop.y * width + samplePosTop.x);
     uint heightRight = height_from_idx(samplePosRight.y * width + samplePosRight.x);
@@ -64,14 +64,16 @@ void main()
     const float maxTemp = 22;
     const float sunMaxTemp = 8;
 
-    const uint maxHeight = 13000;
-    float height = clamp(float(avgHeight) - 10000, float(0), float(maxHeight));
+    const uint maxHeight = 15000;
+    float height = clamp(float(avgHeight) - 13000, float(0), float(maxHeight));
 
     float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
     float sunAllignment = dot(avgNorm, sunDir);
 
     if (sunAllignment > 0)
       temp += sunAllignment * sunMaxTemp;
+
+    temp = (temp + minTemp) / (maxTemp + sunMaxTemp);
 
     // mix with last temp
     float lastTemp = imageLoad(texture, texCoord).x;

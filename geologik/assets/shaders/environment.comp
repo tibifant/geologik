@@ -51,9 +51,9 @@ uint hash(uint x, uint y, uint v)
 
 float interpolate_temperature(uvec2 pos, uint tile_idx)
 {
-  const ivec2 maxTexWidth = ivec2(width / 8 - 1);
+  const ivec2 maxTexWidth = ivec2(width / 4 - 1);
 
-  vec2 fTexPos = max(vec2(pos) / vec2(8.0) - vec2(0.5), vec2(0, 0));
+  vec2 fTexPos = max(vec2(pos) / vec2(4.0) - vec2(0.5), vec2(0, 0));
   ivec2 texPos = ivec2(fTexPos);
 
   float tSelf = imageLoad(texture, texPos).x;
@@ -66,11 +66,6 @@ float interpolate_temperature(uvec2 pos, uint tile_idx)
   float top = mix(tSelf, tRight, fac.x);
   float bottom = mix(tBottom, tBottomRight, fac.x);
   float total = mix(top, bottom, fac.y);
-
-  tiles[tile_idx].heights[0] = 0;
-  tiles[tile_idx].heights[1] = uint(pos.y * 10);
-  tiles[tile_idx].heights[2] = 0;
-  tiles[tile_idx].heights[3] = 0;
 
   return total;
 }
@@ -110,8 +105,12 @@ void main()
         atomicAdd(tiles[i].heights[0], val);
       }
     }
+    
+    const float minTemp = -7;
+    const float maxTemp = 22;
+    const float sunMaxTemp = 8;
 
-    float temp = interpolate_temperature(uvec2(x, y), i);
+    float temp = interpolate_temperature(uvec2(x, y), i) * (maxTemp + sunMaxTemp) + minTemp;
 
     if (rain)
     {
@@ -128,7 +127,7 @@ void main()
       }
     }
     
-    if (!meltSnow && !evaporateWater && temp > 0) // TODO calc temp always to update texture
+    if (!meltSnow && !evaporateWater && temp > 0)
     {      
       if (snowHeight > 0)
       {
@@ -160,8 +159,6 @@ void main()
         uint val = (~evaporation + 1) << 16;
         atomicAdd(tiles[i].heights[0], val);
       }
-
-      // TODO melt snow... & turn rain into snow & maybe turn water into snow, when too cold
     }
   }
 }

@@ -191,12 +191,9 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     texture_create(&_Render.erosion.temperatureTex);
 
     uint8_t *pData;
-    LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 8) * (terrainWidth / 8)));
+    LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 4) * (terrainWidth / 4)));
 
-    //for (size_t i = 0; i < (terrainWidth / 8) * (terrainWidth / 8); i++)
-    //  pData[i] = 128;
-
-    texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 8, terrainWidth / 8)));
+    texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 4, terrainWidth / 4)));
     lsFreePtr(&pData);
   }
 
@@ -342,9 +339,6 @@ void render_drawTerrain(const uint32_t width)
   glCullFace(GL_FRONT);
 
   shader_bind(&_Render.terrain.renderShader);
-  //texture_bind_image(&_Render.erosion.temperatureTex, 0);
-
-  //shader_setUniform(&_Render.terrain.renderShader, "texture", &_Render.erosion.temperatureTex);
   shader_setUniform(&_Render.terrain.renderShader, "width", width);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.renderShader, "sunDir", _Render.sunDir);
@@ -364,15 +358,15 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
   // temperature
   {
     shader_bind(&_Render.erosion.temperatureShader);
-    texture_bind(&_Render.erosion.temperatureTex, 0);
+    texture_bind_image(&_Render.erosion.temperatureTex, 0);
   
     shader_setUniform(&_Render.erosion.temperatureShader, "texture", &_Render.erosion.temperatureTex);
     shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.7f);
     shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);
     shader_setUniform(&_Render.erosion.temperatureShader, "width", width);
-    shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", width / 8);
+    shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", width / 4);
   
-    shader_dispatch_compute(&_Render.erosion.temperatureShader, width / 8, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.temperatureShader, width / 4, 1, 1);
   
     if (_Render.erosion.firstCall)
       _Render.erosion.firstCall = false;
