@@ -107,10 +107,10 @@ void main()
     }
     
     const float minTemp = -7;
-    const float maxTemp = 22;
-    const float sunMaxTemp = 8;
+    const float maxTemp = 23;
+    const float maxSunTemp = 8 * 2.2;
 
-    float temp = interpolate_temperature(uvec2(x, y), i) * (maxTemp + sunMaxTemp) + minTemp;
+    float temp = interpolate_temperature(uvec2(x, y), i) * (maxTemp + maxSunTemp) + minTemp;
 
     if (rain)
     {

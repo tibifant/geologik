@@ -86,6 +86,9 @@ static struct
   vec3f sunDir;
   float sunAngle;
 
+  float seasonVal;
+  float seasonTempFac;
+
   pool<texture> textures;
   camera_3d_free_floating camera;
   matrix vp;
@@ -361,7 +364,8 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     texture_bind_image(&_Render.erosion.temperatureTex, 0);
   
     shader_setUniform(&_Render.erosion.temperatureShader, "texture", &_Render.erosion.temperatureTex);
-    shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.7f);
+    shader_setUniform(&_Render.erosion.temperatureShader, "seasonTempFac", _Render.seasonTempFac);
+    shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.4f);
     shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);
     shader_setUniform(&_Render.erosion.temperatureShader, "width", width);
     shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", width / 4);
@@ -417,7 +421,7 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
   }
 }
 
-static void update_sun_dir()
+static void update_sun()
 {
   _Render.sunAngle = lsMod(_Render.sunAngle + 0.007f, lsTWOPIf);
 
@@ -425,11 +429,15 @@ static void update_sun_dir()
   pos.y = pos.z * 0.35f;
 
   _Render.sunDir = pos.Normalize();
+
+  _Render.seasonVal = lsMod(_Render.seasonVal + 0.001f, lsTWOPIf);
+  _Render.seasonTempFac = lsSin(_Render.seasonVal);
+  print("temp fac: ", _Render.seasonTempFac, '\n');
 }
 
 void render_update(lsAppState *pAppState)
 {
-  update_sun_dir();
+  update_sun();
 
   vec3f movementDir = vec3f(0);
 

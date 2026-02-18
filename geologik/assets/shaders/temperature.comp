@@ -14,6 +14,7 @@ layout(binding = 0, std430) buffer data
 
 uniform layout(r8) image2D texture;
 
+uniform float seasonTempFac;
 uniform float lerpFactor;
 uniform uint width;
 uniform uint textureWidth;
@@ -60,20 +61,27 @@ void main()
     vec3 avgNorm = normalize(vec3(xDiff, yDiff, 100));
 
     // calc temp
-    const float minTemp = -7;
-    const float maxTemp = 22;
-    const float sunMaxTemp = 8;
+    const float winterMinTemp = -7;
+    const float summerMinTemp = -3;
+    const float winterMaxTemp = 14;
+    const float summerMaxTemp = 20;
+    const float maxSunTemp = 8 * 2.2;
+    float sunTemp = 8 * (seasonTempFac + 1.2);
+    float tempFac = (seasonTempFac + 1) * 0.5;
+
+    float currentMinTemp = mix(winterMinTemp, summerMinTemp, tempFac);
+    float currentMaxTemp = mix(winterMaxTemp, summerMaxTemp, tempFac);
 
     const uint maxHeight = 15000;
     float height = clamp(float(avgHeight) - 13000, float(0), float(maxHeight));
 
-    float temp = mix(minTemp, maxTemp, 1 - height * (1.0 / maxHeight));
+    float temp = mix(currentMinTemp, currentMaxTemp, 1 - height * (1.0 / maxHeight));
     float sunAllignment = dot(avgNorm, sunDir);
 
     if (sunAllignment > 0)
-      temp += sunAllignment * sunMaxTemp;
+      temp += sunAllignment * sunTemp;
 
-    temp = (temp + minTemp) / (maxTemp + sunMaxTemp);
+    temp = (temp + winterMinTemp) / (summerMaxTemp + maxSunTemp);
 
     // mix with last temp
     float lastTemp = imageLoad(texture, texCoord).x;
