@@ -214,7 +214,7 @@ uint32_t shader_getUniformIndex(shader *pShader, const char *uniformName)
 
   if (length >= LS_ARRAYSIZE_C_STYLE(shader_name_ref::name))
     return ref.index;
-
+  
   if (LS_FAILED(lsRealloc(&pShader->pUniformReferences, pShader->uniformReferenceCount + 1)))
     return ref.index;
 

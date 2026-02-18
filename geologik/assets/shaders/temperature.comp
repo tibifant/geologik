@@ -63,7 +63,7 @@ void main()
     // calc temp
     const float winterMinTemp = -7;
     const float summerMinTemp = -3;
-    const float winterMaxTemp = 14;
+    const float winterMaxTemp = 16;
     const float summerMaxTemp = 20;
     const float maxSunTemp = 8 * 2.2;
     float sunTemp = 8 * (seasonTempFac + 1.2);

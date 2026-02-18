@@ -432,7 +432,6 @@ static void update_sun()
 
   _Render.seasonVal = lsMod(_Render.seasonVal + 0.001f, lsTWOPIf);
   _Render.seasonTempFac = lsSin(_Render.seasonVal);
-  print("temp fac: ", _Render.seasonTempFac, '\n');
 }
 
 void render_update(lsAppState *pAppState)
