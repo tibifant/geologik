@@ -3,7 +3,7 @@
 layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 uniform layout(r8) image2D tempTex;
-uniform layout(rg /*b?*/) image2D windDirTex; // height seperate?
+uniform layout(r8) image2D velocityTex;
 
 void main()
 {
@@ -17,14 +17,25 @@ void main()
     // read density in own cell
     float selfTemp = imageLoad(tempTex, texCoord).x;
 
-    vec2 windDir = imageLoad(windDirTex, texCoord).xy;
-
     // read density in cell of wind dir
-    ivec2 nextCellCoord = clamp(tecCoord + windDir, ivec2(0), ivec2(width / 4)); // normalize depending on how i decide to write to the tex!
+    ivec2 nextCellCoord = tecCoord + generellDir;
+
+    if (nextCellCoord.x < 0 || nextCellCoord.y < 0 || nextCellCoord.x > texWidth || nextCellCoord.y > texWidth)
+      continue;
+    
+    float nextTemp = imageLoad(tempTex, nextCellCoord);
 
     // adapt wind speed according to density:
+    float tempDiff = nextTemp - selfTemp;
     // density in next cell higher (= temp lower): slow down - lower density / increase temperature in next cell
     // density in next cell lower (= temp higher): speed up - increase density / decrease temperature in next cell
+    float newTemp = clamp(nextTemp - tempDiff * 0.5, 0, 1); // balance temperature (density)
+    float vel = imageLoad(velocityTex);
+    float newVel = clamp(vel + diff * 0.4 /*idk man*/);
+
+    imageStore(tempTex, nextCellCoord, newTemp); // TODO atomic?
+    imageStore(velocityTex, texCoord, newVel); // TODO atomic?
+
     // else: stay the same 
 
     // TODO: height - adapt height according to terrain, adapt height according to air density
