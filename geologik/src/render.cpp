@@ -61,6 +61,9 @@ static struct
     shader temperatureShader;
     texture temperatureTex;
 
+    shader windShader;
+    texture windTex;
+
     bool firstCall = true;
   } erosion;
 
@@ -191,13 +194,31 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.temperatureShader, "shaders/temperature.comp"));
 
-    texture_create(&_Render.erosion.temperatureTex);
+    {
+      texture_create(&_Render.erosion.temperatureTex);
 
-    uint8_t *pData;
-    LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 4) * (terrainWidth / 4)));
+      uint8_t *pData;
+      LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 4) * (terrainWidth / 4)));
 
-    texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 4, terrainWidth / 4)));
-    lsFreePtr(&pData);
+      texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 4, terrainWidth / 4)));
+      lsFreePtr(&pData);
+
+    }
+
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.windShader, "shaders/wind.comp"));
+    
+    {
+      texture_create(&_Render.erosion.windTex);
+
+      uint8_t *pData;
+      LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 4) * (terrainWidth / 4)));
+
+      for (size_t i = 0; i < (terrainWidth / 4) * (terrainWidth / 4); i++)
+        pData[i] = 1;
+
+      texture_set_single(&_Render.erosion.windTex, pData, vec2s((terrainWidth / 4, terrainWidth / 4)));
+      lsFreePtr(&pData);
+    }
   }
 
   // Create Terrain.
@@ -284,6 +305,7 @@ void render_endFrame(lsAppState *pAppState)
 void render_destroy()
 {
   texture_destroy(&_Render.erosion.temperatureTex);
+  texture_destroy(&_Render.erosion.windTex);
 
   for (auto _item : _Render.textures)
     texture_destroy(_item.pItem);
@@ -374,6 +396,20 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
   
     if (_Render.erosion.firstCall)
       _Render.erosion.firstCall = false;
+  }
+
+  // wind
+  {
+    shader_bind(&_Render.erosion.windShader);
+    texture_bind_image(&_Render.erosion.temperatureTex, 0);
+    shader_setUniform(&_Render.erosion.windShader, "tempTex", &_Render.erosion.temperatureTex);
+
+    texture_bind_image(&_Render.erosion.windTex, 1);
+    shader_setUniform(&_Render.erosion.windShader, "velocityTex", &_Render.erosion.windTex);
+
+    shader_setUniform(&_Render.erosion.windShader, "texWidth", width / 4);
+
+    shader_dispatch_compute(&_Render.erosion.windShader, width / 4, 1, 1);
   }
   
   // thawing, evaporation, rain
