@@ -51,9 +51,9 @@ lsResult dataBlob_read(dataBlob *pBlob, _Out_ T *pData, const size_t count = 1)
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pBlob == nullptr || pData == nullptr, lsR_ArgumentNull);
-  
   const size_t requiredSize = sizeof(T) * count;
+  
+  LS_ERROR_IF(pBlob == nullptr || pData == nullptr, lsR_ArgumentNull);
   
   LS_ERROR_IF(pBlob->readPosition + requiredSize > pBlob->size, lsR_ArgumentOutOfBounds);
 

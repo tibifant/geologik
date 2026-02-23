@@ -7,8 +7,6 @@
 #include "gpuBuffer.h"
 #include "framebuffer.h"
 #include "shader.h"
-#include "dataBlob.h"
-#include "terrain.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -85,6 +83,9 @@ static struct
   } plane;
 
   framebuffer frameBuffer;
+
+  uint32_t terrainWidth;
+  uint32_t textureWidth;
 
   vec3f sunDir;
   float sunAngle;
@@ -167,7 +168,7 @@ epilogue:
   return result;
 }
 
-lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
+lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
 {
   lsResult result = lsR_Success;
 
@@ -178,17 +179,13 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
 
   framebuffer_create(&_Render.frameBuffer, _Render.windowSize, 1, true);
 
+  _Render.terrainWidth = pTerrain->width;
+  _Render.textureWidth = pTerrain->width / 4;
+
   // Create Erosion Buffer & Shader.
-  {
-    terrain t;
-    
-    LS_ERROR_CHECK(terrain_init(&t, (uint16_t)terrainWidth));
-    LS_ERROR_CHECK(terrain_generate(&t));
-
+  {    
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer, gbat_read_only));
-    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, t.pTiles, t.width * t.width));
-
-    terrain_destroy(&t);
+    LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, pTerrain->pTiles, pTerrain->width * pTerrain->width));
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.erosionShader, "shaders/erosion.comp"));
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.environmentShader, "shaders/environment.comp"));
@@ -198,11 +195,10 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
       texture_create(&_Render.erosion.temperatureTex);
 
       uint8_t *pData;
-      LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 4) * (terrainWidth / 4)));
+      LS_ERROR_CHECK(lsAllocZero(&pData, _Render.textureWidth * _Render.textureWidth));
 
-      texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((terrainWidth / 4, terrainWidth / 4)));
+      texture_set_single(&_Render.erosion.temperatureTex, pData, vec2s((_Render.textureWidth)));
       lsFreePtr(&pData);
-
     }
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.windShader, "shaders/wind.comp"));
@@ -211,12 +207,12 @@ lsResult render_init(lsAppState *pAppState, const size_t terrainWidth)
       texture_create(&_Render.erosion.windTex);
 
       uint8_t *pData;
-      LS_ERROR_CHECK(lsAllocZero(&pData, (terrainWidth / 4) * (terrainWidth / 4)));
+      LS_ERROR_CHECK(lsAllocZero(&pData, _Render.textureWidth * _Render.textureWidth));
 
-      for (size_t i = 0; i < (terrainWidth / 4) * (terrainWidth / 4); i++)
+      for (size_t i = 0; i < _Render.textureWidth * _Render.textureWidth; i++)
         pData[i] = 1;
 
-      texture_set_single(&_Render.erosion.windTex, pData, vec2s((terrainWidth / 4, terrainWidth / 4)));
+      texture_set_single(&_Render.erosion.windTex, pData, vec2s((_Render.textureWidth)));
       lsFreePtr(&pData);
     }
   }
@@ -358,19 +354,19 @@ void render_drawSky()
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void render_drawTerrain(const uint32_t width)
+void render_drawTerrain()
 {
   glEnable(GL_CULL_FACE);
   glCullFace(GL_FRONT);
 
   shader_bind(&_Render.terrain.renderShader);
-  shader_setUniform(&_Render.terrain.renderShader, "width", width);
+  shader_setUniform(&_Render.terrain.renderShader, "width", _Render.terrainWidth);
   shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.renderShader, "sunDir", _Render.sunDir);
 
-  for (uint32_t y = 0; y < width; y += quadCountY)
+  for (uint32_t y = 0; y < _Render.terrainWidth; y += quadCountY)
   {
-    for (uint32_t x = 0; x < width; x += quadCountX)
+    for (uint32_t x = 0; x < _Render.terrainWidth; x += quadCountX)
     {
       shader_setUniform(&_Render.terrain.renderShader, "offset", vec2u32(x, y));
       vertexBuffer_render(&_Render.terrain.buffer);
@@ -378,7 +374,7 @@ void render_drawTerrain(const uint32_t width)
   }
 }
 
-void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
+void render_computeTerrain(const lsAppState *pAppState)
 {
   // temperature
   {
@@ -389,10 +385,10 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     shader_setUniform(&_Render.erosion.temperatureShader, "seasonTempFac", _Render.seasonTempFac);
     shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.4f);
     shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);
-    shader_setUniform(&_Render.erosion.temperatureShader, "width", width);
-    shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", width / 4);
+    shader_setUniform(&_Render.erosion.temperatureShader, "width", _Render.terrainWidth);
+    shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", _Render.textureWidth);
   
-    shader_dispatch_compute(&_Render.erosion.temperatureShader, width / 4, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.temperatureShader, _Render.textureWidth, 1, 1);
   
     if (_Render.erosion.firstCall)
       _Render.erosion.firstCall = false;
@@ -407,9 +403,9 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     texture_bind_image(&_Render.erosion.windTex, 1);
     shader_setUniform(&_Render.erosion.windShader, "velocityTex", &_Render.erosion.windTex);
 
-    shader_setUniform(&_Render.erosion.windShader, "texWidth", width / 4);
+    shader_setUniform(&_Render.erosion.windShader, "texWidth", _Render.textureWidth);
 
-    shader_dispatch_compute(&_Render.erosion.windShader, width / 4, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
   }
   
   // thawing, evaporation, rain
@@ -421,13 +417,13 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     shader_bind(&_Render.erosion.environmentShader);
     texture_bind_image(&_Render.erosion.temperatureTex, 0);
     shader_setUniform(&_Render.erosion.environmentShader, "texture", &_Render.erosion.temperatureTex);
-    shader_setUniform(&_Render.erosion.environmentShader, "width", width);
+    shader_setUniform(&_Render.erosion.environmentShader, "width", _Render.terrainWidth);
     shader_setUniform(&_Render.erosion.environmentShader, "meltSnow", thaw);
     shader_setUniform(&_Render.erosion.environmentShader, "evaporateWater", evaporate);
     shader_setUniform(&_Render.erosion.environmentShader, "hashValue", uint32_t(lsGetRand()));
     shader_setUniform(&_Render.erosion.environmentShader, "rain", rain);
 
-    shader_dispatch_compute(&_Render.erosion.environmentShader, width, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.environmentShader, _Render.terrainWidth, 1, 1);
 
     glFlush();
     glFinish();
@@ -436,10 +432,10 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
   // erosion
   {
     shader_bind(&_Render.erosion.erosionShader);
-    shader_setUniform(&_Render.erosion.erosionShader, "width", width);
+    shader_setUniform(&_Render.erosion.erosionShader, "width", _Render.terrainWidth);
     shader_setUniform(&_Render.erosion.erosionShader, "hashValue", uint32_t(lsGetRand()));
 
-    shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
+    shader_dispatch_compute(&_Render.erosion.erosionShader, _Render.terrainWidth, 1, 1);
 
     glFlush();
     glFinish();
@@ -452,7 +448,7 @@ void render_computeTerrain(const lsAppState *pAppState, const uint32_t width)
     {
       glFlush();
       glFinish();
-      shader_dispatch_compute(&_Render.erosion.erosionShader, width, 1, 1);
+      shader_dispatch_compute(&_Render.erosion.erosionShader, _Render.terrainWidth, 1, 1);
     }
   }
 }

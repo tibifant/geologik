@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "render.h"
+#include "terrain.h"
 
 #include <stdio.h>
 
@@ -22,14 +23,29 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
 {
   lsResult result = lsR_Success;
 
-  (void)argc;
-  (void)pArgs;
-
-  constexpr size_t width = 1024;
+  uint16_t width = 1024;
 
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
 
-  LS_ERROR_CHECK(render_init(&_AppState, width));
+  if (argc == 2)
+  {
+    terrain t;
+    LS_ERROR_CHECK(terrain_init_from_file(pArgs[1], &t));
+    LS_ERROR_CHECK(render_init(&_AppState, &t));
+    terrain_destroy(&t);
+  }
+  else if (argc == 1)
+  {
+    terrain t;
+    LS_ERROR_CHECK(terrain_init(&t, width));
+    LS_ERROR_CHECK(terrain_generate(&t));
+    LS_ERROR_CHECK(render_init(&_AppState, &t));
+    terrain_destroy(&t);
+  }
+  else
+  {
+    lsFail();
+  }
 
   {
     const float_t updateTimeMs = 1000.0f / 120.f;
@@ -39,6 +55,8 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
 
     while (lsAppState_HandleWindowEvents(&_AppState))
     {
+      // if key pressed: write terrain to file
+
       const int64_t before = lsGetCurrentTimeNs();
 
 #ifdef _DEBUG
@@ -53,8 +71,8 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       {
         render_startFrame(&_AppState);
         render_update(&_AppState);
-        render_computeTerrain(&_AppState, width);
-        render_drawTerrain(width);
+        render_computeTerrain(&_AppState);
+        render_drawTerrain();
         render_endFrame(&_AppState);
       }
 

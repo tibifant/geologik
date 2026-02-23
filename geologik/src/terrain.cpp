@@ -1,4 +1,6 @@
 #include "terrain.h"
+#include "dataBlob.h"
+#include "io.h"
 
 lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width)
 {
@@ -7,6 +9,47 @@ lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width)
   pTerrain->width = width;
 
   LS_ERROR_CHECK(lsAllocZero(&(pTerrain->pTiles), width * width));
+
+epilogue:
+  return result;
+}
+
+lsResult terrain_init_from_file(const char *filename, terrain *pTerrain)
+{
+  lsResult result = lsR_Success;
+
+  constexpr uint8_t currentVersion = 1;
+
+  uint8_t *fileContents = nullptr;
+  size_t count;
+  dataBlob *pBlob = nullptr;
+
+  print_log_line("Trying to read terrain from file: ", filename);
+
+  LS_ERROR_CHECK(lsReadFile(filename, &fileContents, &count));
+  dataBlob_createFromForeign(pBlob, fileContents, count);
+
+  uint8_t version;
+  LS_ERROR_CHECK(dataBlob_read(pBlob, &version));
+
+  LS_ERROR_IF(version != currentVersion, lsR_ResourceIncompatible);
+  print_log_line("Reading from file with version: ", version);
+
+  uint16_t width;
+  LS_ERROR_CHECK(dataBlob_read(pBlob, &width));
+
+  uint16_t height;
+  LS_ERROR_CHECK(dataBlob_read(pBlob, &height));
+
+  lsAssert(width == height);
+
+  print_log_line("Creating Terrain from file (w/ size: ", width, " x ", height, ")");
+  
+  LS_ERROR_CHECK(terrain_init(pTerrain, width));
+
+  LS_ERROR_CHECK(dataBlob_read(pBlob, pTerrain->pTiles, width * width * tt_count));
+
+  dataBlob_destroy(pBlob);
 
 epilogue:
   return result;
