@@ -134,6 +134,9 @@ void main()
         }
       }
 
+      if (terrainTypeBeneath == 7) // check for bedrock
+        continue;
+
       uint diff = min((height - minNeighborHeight) / 2, selfWater);
 
       if (terrainTypeBeneath > 0 && diff > 1 && terrainTypeBeneath != 7)

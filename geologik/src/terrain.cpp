@@ -2,6 +2,8 @@
 #include "dataBlob.h"
 #include "io.h"
 
+constexpr uint8_t fileVersion = 1;
+
 lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width)
 {
   lsResult result = lsR_Success;
@@ -14,11 +16,9 @@ epilogue:
   return result;
 }
 
-lsResult terrain_init_from_file(const char *filename, terrain *pTerrain)
+lsResult terrain_init_from_file(const char *filename, _Out_ terrain *pTerrain)
 {
   lsResult result = lsR_Success;
-
-  constexpr uint8_t currentVersion = 1;
 
   uint8_t *fileContents = nullptr;
   size_t count;
@@ -32,7 +32,7 @@ lsResult terrain_init_from_file(const char *filename, terrain *pTerrain)
   uint8_t version;
   LS_ERROR_CHECK(dataBlob_read(pBlob, &version));
 
-  LS_ERROR_IF(version != currentVersion, lsR_ResourceIncompatible);
+  LS_ERROR_IF(version != fileVersion, lsR_ResourceIncompatible);
   print_log_line("Reading from file with version: ", version);
 
   uint16_t width;
@@ -50,6 +50,24 @@ lsResult terrain_init_from_file(const char *filename, terrain *pTerrain)
   LS_ERROR_CHECK(dataBlob_read(pBlob, pTerrain->pTiles, width * width * tt_count));
 
   dataBlob_destroy(pBlob);
+
+epilogue:
+  return result;
+}
+
+lsResult terrain_write_to_file(const terrain *pTerrain)
+{
+  lsResult result = lsR_Success;
+  
+  dataBlob blob;
+
+  LS_ERROR_CHECK(dataBlob_appendValue(&blob, fileVersion));
+  LS_ERROR_CHECK(dataBlob_appendValue(&blob, pTerrain->width));
+  LS_ERROR_CHECK(dataBlob_appendValue(&blob, pTerrain->width)); // height
+
+  LS_ERROR_CHECK(dataBlob_append(&blob, pTerrain->pTiles, pTerrain->width * pTerrain->width * tt_count));
+
+  // TODO write to file!
 
 epilogue:
   return result;
