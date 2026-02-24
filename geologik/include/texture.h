@@ -38,6 +38,7 @@ lsResult texture_set(texture *pTexture, const char *filename);
 lsResult texture_set_raw(texture *pTexture, const void *pData, texture_format_type textureFormatType, const vec2s resolution);
 lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolution);
 lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resolution);
+lsResult texture_set(texture *pTexture, const float_t *pData, const vec2s resolution);
 lsResult texture_set_u8r(texture *pTexture, const uint8_t *pData, const vec2s resolution);
 lsResult texture_bind(texture *pTexture, const uint32_t textureUnit);
 lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit, const texture_image_access accessType);

@@ -22,7 +22,7 @@ int32_t main(int32_t argc, char **pArgv)
 lsResult MainGameLoop(int32_t argc, const char **pArgs)
 {
   lsResult result = lsR_Success;
-
+  
   uint16_t width = 1024;
 
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));

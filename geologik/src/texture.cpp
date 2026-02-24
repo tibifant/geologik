@@ -95,6 +95,10 @@ lsResult texture_set_raw(texture *pTexture, const void *pData, texture_format_ty
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, pData);
     break;
 
+  case tft_f32:
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_FLOAT, pData);
+    break;
+
   case tft_u8r:
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RED, GL_UNSIGNED_BYTE, pData);
     break;
@@ -119,6 +123,11 @@ lsResult texture_set(texture *pTexture, const uint8_t *pData, const vec2s resolu
 lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resolution)
 {
   return texture_set_raw(pTexture, pData, tft_u16, resolution);
+}
+
+lsResult texture_set(texture *pTexture, const float_t *pData, const vec2s resolution)
+{
+  return texture_set_raw(pTexture, pData, tft_f32, resolution);
 }
 
 lsResult texture_set_u8r(texture *pTexture, const uint8_t *pData, const vec2s resolution)

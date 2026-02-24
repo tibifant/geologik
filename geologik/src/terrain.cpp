@@ -107,7 +107,7 @@ lsResult terrain_generate(terrain *pTerrain)
     -50, // tt_snow
     -100, // tt_water
     0, // tt_grass
-    -100, // tt_soil
+    -90, // tt_soil
     -100, // tt_sand
     -16000, // tt_limestone
     100 // tt_stone
