@@ -453,6 +453,29 @@ void render_computeTerrain(const lsAppState *pAppState)
   }
 }
 
+lsResult render_writeTerrainToFile()
+{
+  lsResult result = lsR_Success;
+  
+  size_t size;
+  tile *pTiles = nullptr;
+
+  LS_ERROR_CHECK(gpuBuffer_get_data(&_Render.erosion.gpuBuffer, &pTiles, &size));
+  lsAssert(size > 0);
+
+  {
+    terrain t;
+    LS_ERROR_CHECK(terrain_init(&t, (uint16_t)_Render.terrainWidth));
+    t.pTiles = pTiles;
+
+    LS_ERROR_CHECK(terrain_write_to_file(&t));
+    terrain_destroy(&t);
+  }
+
+epilogue:
+  return result;
+}
+
 static void update_sun()
 {
   _Render.sunAngle = lsMod(_Render.sunAngle + 0.007f, lsTWOPIf);

@@ -46,10 +46,11 @@ epilogue:
 }
 
 template<typename T>
-lsResult gpuBuffer_get_data(gpu_buffer *pBuffer, _Out_ T **ppData, _Out_ size_t *pCount)
+lsResult gpuBuffer_get_data(const gpu_buffer *pBuffer, _Out_ T **ppData, _Out_ size_t *pCount)
 {
   lsResult result = lsR_Success;
 
+  LS_ERROR_IF(ppData == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(*ppData != nullptr, lsR_InvalidParameter);
 
   size_t size;

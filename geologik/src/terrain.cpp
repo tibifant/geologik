@@ -22,24 +22,24 @@ lsResult terrain_init_from_file(const char *filename, _Out_ terrain *pTerrain)
 
   uint8_t *fileContents = nullptr;
   size_t count;
-  dataBlob *pBlob = nullptr;
+  dataBlob blob;
 
   print_log_line("Trying to read terrain from file: ", filename);
 
   LS_ERROR_CHECK(lsReadFile(filename, &fileContents, &count));
-  dataBlob_createFromForeign(pBlob, fileContents, count);
+  dataBlob_createFromForeign(&blob, fileContents, count);
 
   uint8_t version;
-  LS_ERROR_CHECK(dataBlob_read(pBlob, &version));
+  LS_ERROR_CHECK(dataBlob_read(&blob, &version));
 
   LS_ERROR_IF(version != fileVersion, lsR_ResourceIncompatible);
   print_log_line("Reading from file with version: ", version);
 
   uint16_t width;
-  LS_ERROR_CHECK(dataBlob_read(pBlob, &width));
+  LS_ERROR_CHECK(dataBlob_read(&blob, &width));
 
   uint16_t height;
-  LS_ERROR_CHECK(dataBlob_read(pBlob, &height));
+  LS_ERROR_CHECK(dataBlob_read(&blob, &height));
 
   lsAssert(width == height);
 
@@ -47,9 +47,9 @@ lsResult terrain_init_from_file(const char *filename, _Out_ terrain *pTerrain)
   
   LS_ERROR_CHECK(terrain_init(pTerrain, width));
 
-  LS_ERROR_CHECK(dataBlob_read(pBlob, pTerrain->pTiles, width * width * tt_count));
+  LS_ERROR_CHECK(dataBlob_read(&blob, pTerrain->pTiles, width * width));
 
-  dataBlob_destroy(pBlob);
+  dataBlob_destroy(&blob);
 
 epilogue:
   return result;
@@ -59,15 +59,19 @@ lsResult terrain_write_to_file(const terrain *pTerrain)
 {
   lsResult result = lsR_Success;
   
+  constexpr char filename[] = "out_terrain.bin";
+
   dataBlob blob;
 
   LS_ERROR_CHECK(dataBlob_appendValue(&blob, fileVersion));
   LS_ERROR_CHECK(dataBlob_appendValue(&blob, pTerrain->width));
   LS_ERROR_CHECK(dataBlob_appendValue(&blob, pTerrain->width)); // height
 
-  LS_ERROR_CHECK(dataBlob_append(&blob, pTerrain->pTiles, pTerrain->width * pTerrain->width * tt_count));
+  LS_ERROR_CHECK(dataBlob_append(&blob, pTerrain->pTiles, pTerrain->width * pTerrain->width));
 
-  // TODO write to file!
+  print_log_line("Writing terrain to file: ", filename);
+
+  LS_ERROR_CHECK(lsWriteFile(filename, blob.pData, blob.size));
 
 epilogue:
   return result;

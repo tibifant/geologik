@@ -32,6 +32,7 @@ struct terrain
 
 lsResult terrain_init(_Out_ terrain *pTerrain, const uint16_t width);
 lsResult terrain_init_from_file(const char *filename, _Out_ terrain *pTerrain);
+lsResult terrain_write_to_file(const terrain *pTerrain);
 lsResult terrain_generate(terrain *pTerrain);
 void terrain_destroy(terrain *pTerrain);
 

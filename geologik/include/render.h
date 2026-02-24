@@ -22,6 +22,8 @@ void render_drawTerrain();
 
 void render_computeTerrain(const lsAppState *pAppState);
 
+lsResult render_writeTerrainToFile();
+
 void render_update(lsAppState *pAppState);
 
 #ifdef _DEBUG

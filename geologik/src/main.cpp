@@ -55,7 +55,8 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
 
     while (lsAppState_HandleWindowEvents(&_AppState))
     {
-      // if key pressed: write terrain to file
+      if (lsKeyboardState_IsKeyDown(&_AppState.keyboardState, SDL_SCANCODE_LCTRL) && lsKeyboardState_KeyPress(&_AppState.keyboardState, SDL_SCANCODE_F10))
+        LS_ERROR_CHECK(render_writeTerrainToFile());
 
       const int64_t before = lsGetCurrentTimeNs();
 

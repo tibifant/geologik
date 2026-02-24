@@ -28,13 +28,15 @@ lsResult dataBlob_append(dataBlob *pBlob, const T *pData, const size_t count = 1
   LS_ERROR_IF(pBlob == nullptr || pData == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(pBlob->isForeign, lsR_ResourceStateInvalid);
 
-  const size_t requiredSize = sizeof(T) * count;
+  {
+    const size_t requiredSize = sizeof(T) * count;
 
-  if (pBlob->capacity <= pBlob->size + requiredSize)
-    LS_ERROR_CHECK(dataBlob_reserve(pBlob, (lsMax(pBlob->size * 2, pBlob->size + requiredSize * 2) + 1023) & ~(size_t)(1023)));
+    if (pBlob->capacity <= pBlob->size + requiredSize)
+      LS_ERROR_CHECK(dataBlob_reserve(pBlob, (lsMax(pBlob->size * 2, pBlob->size + requiredSize * 2) + 1023) & ~(size_t)(1023)));
 
-  memcpy(pBlob->pData + pBlob->size, pData, requiredSize);
-  pBlob->size += requiredSize;
+    memcpy(pBlob->pData + pBlob->size, pData, requiredSize);
+    pBlob->size += requiredSize;
+  }
 
 epilogue:
   return result;
