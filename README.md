@@ -1,9 +1,26 @@
 # Geo-Logik
+## Erosion Simulation
 
-Erosion Simulation
+Geo-Logik simulates erosion on a procedurally generated terrain.
+
+## How to run the application
+
+### How to load terrain
+
+### How to save terrain
+
+## Keyboard Inputs
+
+You can use different inputs whilst the application is running:
+
+- `p` - rain / snowfall
+- `m` - melt snow
+- `t` - faster erosion
+- `LShift + F10` - Write the current terrain to file
+
+#### Specification for the shared file format
 
 ```
-// Specification for the shared file format:
 // all data is written to the file raw -> this is a binary data format.
 
 uint8_t version = 1; // for now this is 1, but may be incremented in the furure if we ever decide to change anything about the file format.
@@ -28,4 +45,5 @@ struct tile
   };
   
   // within the 'world' the terrain types can only ever be layered in the exact same order as in the array. So snow is always on top, then follows water, ..., with bedrock as the last layer.
+}
 ```

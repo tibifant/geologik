@@ -3,7 +3,7 @@
 layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 uniform layout(r8, binding = 0) image2D tempTex;
-uniform layout(r8, binding = 1) image2D velocityTex;
+uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x vel.y height, air density
 uniform uint texWidth;
 
 void main()
@@ -14,6 +14,8 @@ void main()
   for (uint x = 0; x < texWidth; x++)
   { 
     ivec2 texCoord = ivec2(x, y);
+
+    // density = 1-temp (real world range: ~ 1.34 - 1.14) influence by last
 
     // read density in own cell
     float selfTemp = imageLoad(tempTex, texCoord).x;
@@ -32,13 +34,18 @@ void main()
     // density in next cell lower (= temp higher): speed up - increase density / decrease temperature in next cell
     float newTemp = clamp(nextTemp - tempDiff * 0.5, 0, 1); // balance temperature (density)
     float vel = imageLoad(velocityTex, texCoord).x;
-    float newVel = clamp(vel + tempDiff * 0.5 /*idk man*/, 0, 1);
+    float newVel = clamp(vel + tempDiff /*idk man*/, 0, 1);
 
-    imageStore(tempTex, nextCellCoord, vec4(newTemp, 0, 0, 0)); // TODO atomic?
+    //imageStore(tempTex, nextCellCoord, vec4(newTemp, 0, 0, 0)); // TODO atomic?
     imageStore(velocityTex, texCoord, vec4(newVel, 0, 0, 0)); // TODO atomic?
 
     // else: stay the same 
 
     // TODO: height - adapt height according to terrain, adapt height according to air density
+
+
+    // look for neighbour with lowest air density
+    // influence direction to go towards lowest neighbour
+    // equalize density
   }
 }

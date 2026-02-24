@@ -44,6 +44,8 @@ epilogue:
   return result;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 lsResult texture_set(texture *pTexture, const char *filename)
 {
   lsResult result = lsR_Success;
@@ -119,10 +121,12 @@ lsResult texture_set(texture *pTexture, const uint16_t *pData, const vec2s resol
   return texture_set_raw(pTexture, pData, tft_u16, resolution);
 }
 
-lsResult texture_set_single(texture *pTexture, const uint8_t *pData, const vec2s resolution)
+lsResult texture_set_u8r(texture *pTexture, const uint8_t *pData, const vec2s resolution)
 {
   return texture_set_raw(pTexture, pData, tft_u8r, resolution);
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 lsResult texture_bind(texture *pTexture, const uint32_t textureUnit)
 {
@@ -141,11 +145,95 @@ epilogue:
   return result;
 }
 
-lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit)
+void texture_bind_image_u8_internal(texture *pTexture, const texture_image_access accessType)
+{
+  switch (accessType)
+  {
+  case tia_read_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+    break;
+
+  case tia_write_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    break;
+
+  case tia_read_write:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+    break;
+
+  default:
+    lsAssert(false); // not implemented.
+  }
+}
+
+void texture_bind_image_u16_internal(texture *pTexture, const texture_image_access accessType)
+{
+  switch (accessType)
+  {
+  case tia_read_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16);
+    break;
+
+  case tia_write_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16);
+    break;
+
+  case tia_read_write:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16);
+    break;
+
+  default:
+    lsAssert(false); // not implemented.
+  }
+}
+
+void texture_bind_image_f32_internal(texture *pTexture, const texture_image_access accessType)
+{
+  switch (accessType)
+  {
+  case tia_read_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    break;
+
+  case tia_write_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    break;
+
+  case tia_read_write:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    break;
+
+  default:
+    lsAssert(false); // not implemented.
+  }
+}
+
+void texture_bind_image_r8_internal(texture *pTexture, const texture_image_access accessType)
+{
+  switch (accessType)
+  {
+  case tia_read_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R8);
+    break;
+
+  case tia_write_only:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8);
+    break;
+
+  case tia_read_write:
+    glBindImageTexture(pTexture->textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R8);
+    break;
+
+  default:
+    lsAssert(false); // not implemented.
+  }
+}
+
+lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit, const texture_image_access accessType)
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_IF(pTexture == nullptr, lsR_InvalidParameter);
+  LS_ERROR_IF(pTexture == nullptr, lsR_ArgumentNull);
   LS_ERROR_IF(!pTexture->initialized, lsR_ResourceStateInvalid);
   LS_ERROR_IF(!pTexture->uploaded, lsR_ResourceStateInvalid);
 
@@ -154,15 +242,19 @@ lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit)
   switch (pTexture->textureFormatType)
   {
   case tft_u8:
-    glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8); // only read write supported atm - other options available
+    texture_bind_image_u8_internal(pTexture, accessType);
     break;
 
   case tft_u16:
-    glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16); // only read write supported atm - other options available
+    texture_bind_image_u16_internal(pTexture, accessType);
+    break;
+
+  case tft_f32:
+    texture_bind_image_f32_internal(pTexture, accessType);
     break;
 
   case tft_u8r:
-    glBindImageTexture(textureUnit, pTexture->textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R8); // only read write supported atm - other options available
+    texture_bind_image_r8_internal(pTexture, accessType);
     break;
 
   default:
@@ -173,6 +265,8 @@ lsResult texture_bind_image(texture *pTexture, const uint32_t textureUnit)
 epilogue:
   return result;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void texture_destroy(_Out_ texture *pTexture)
 {
