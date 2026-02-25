@@ -42,7 +42,7 @@ void main()
 
       // add directional influence
       vec2 vDiff = vec2(diff) * vec2(neighbours[i]);
-      // TODO rougly calculate the actual resulting velocity difference
+      // TODO rougly calculate the actual resulting velocity difference - percentage of difference: if the air density is 50% then the wind speeds up 50% times...
       // TODO add to current velocity
     }
 

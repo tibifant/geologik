@@ -376,9 +376,13 @@ void render_computeTerrain(const lsAppState *pAppState)
   // temperature
   {
     shader_bind(&_Render.erosion.temperatureShader);
+
     texture_bind_image(&_Render.erosion.temperatureTex, 0, tia_read_write);
-  
     shader_setUniform(&_Render.erosion.temperatureShader, "texture", &_Render.erosion.temperatureTex);
+    
+    texture_bind_image(&_Render.erosion.windTex, 0, tia_read_write);
+    shader_setUniform(&_Render.erosion.temperatureShader, "windTex", &_Render.erosion.windTex);
+  
     shader_setUniform(&_Render.erosion.temperatureShader, "seasonTempFac", _Render.seasonTempFac);
     shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.4f);
     shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);

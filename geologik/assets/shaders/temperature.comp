@@ -13,6 +13,7 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform layout(r8) image2D texture;
+uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x vel.y height, air density
 
 uniform float seasonTempFac;
 uniform float lerpFactor;
@@ -41,6 +42,8 @@ void main()
   for (uint x = 0; x < textureWidth; x++)
   {
     ivec2 texCoord = ivec2(x, y);
+
+    // TODO: wind temp
 
     // sample height & normals for average
     uvec2 samplePos = texCoord * uvec2(4, 4);// uvec2(8, 8);
@@ -81,13 +84,17 @@ void main()
     if (sunAllignment > 0)
       temp += sunAllignment * sunTemp;
 
-    temp = (temp + winterMinTemp) / (summerMaxTemp + maxSunTemp);
+    float scaledTemp = (temp + winterMinTemp) / (summerMaxTemp + maxSunTemp);
 
     // mix with last temp
     float lastTemp = imageLoad(texture, texCoord).x;
-    temp = mix(temp, lastTemp, lerpFactor);
+    scaledTemp = mix(scaledTemp, lastTemp, lerpFactor);
 
     // set new temp
-    imageStore(texture, texCoord, vec4(temp, 0, 0, 0));
+    imageStore(texture, texCoord, vec4(scaledTemp, 0, 0, 0));
+
+    vec4 wind = imageLoad(windTex, texCoord);
+    wind.w = mix(temp - 7, wind.w, lerpFactor);
+    imageStore(windTex, texCoord, wind);
   }
 }
