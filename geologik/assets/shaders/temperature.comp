@@ -12,7 +12,7 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
-uniform layout(r8) image2D texture;
+uniform layout(r8, binding = 0) image2D texture;
 uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x vel.y height, air density
 
 uniform float seasonTempFac;
@@ -89,12 +89,15 @@ void main()
     // mix with last temp
     float lastTemp = imageLoad(texture, texCoord).x;
     scaledTemp = mix(scaledTemp, lastTemp, lerpFactor);
+    
+    // wind temp
+    vec4 wind = imageLoad(windTex, texCoord);
+    float heightDiff = clamp((wind.z - avgHeight) / 50000, 0 , 1);
+    wind.w = mix(temp, wind.w, heightDiff);
 
     // set new temp
     imageStore(texture, texCoord, vec4(scaledTemp, 0, 0, 0));
 
-    vec4 wind = imageLoad(windTex, texCoord);
-    wind.w = mix(temp - 7, wind.w, lerpFactor);
     imageStore(windTex, texCoord, wind);
   }
 }

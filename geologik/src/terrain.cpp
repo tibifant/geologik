@@ -191,5 +191,3 @@ void terrain_destroy(terrain *pTerrain)
 
   lsFreePtr(&pTerrain->pTiles);
 }
-
-// TODO read/write data from/to file

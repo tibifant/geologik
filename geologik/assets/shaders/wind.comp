@@ -3,7 +3,7 @@
 layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 uniform layout(r8, binding = 0) image2D tempTex;
-uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x vel.y height, air density
+uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x, vel.y, height, air temp
 uniform uint texWidth;
 
 const ivec2 neighbours[8] = ivec2[8](ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1));
@@ -19,12 +19,15 @@ void main()
     // TODO! set density
     // density = 1-temp (real world range: ~ 1.34 - 1.14) & influence by previous
 
+    // pressure: roughly 0m - 5000m ~ 1 - 0.84 -> density: p /temp  -> -7 - 31,584
+
     // wind: ~ 0 km/h - 140 km/h 
 
-    vec4 tile = imageLoad(windTex, texCoord);
+    vec4 currentTile = imageLoad(windTex, texCoord);
+    float currentTemp = currentTile.w;
 
-    float currentDensity = tile.w;
-    float nextDensity = currentDensity;
+    float currentPressure = mix(0.84, 1, clamp(currentTile.z / 50000, 0, 1)); // density at 5000m ~0.84, at 0m ~1
+    float currentDensity = currentPressure / max(currentTemp, 0);
 
     for (uint i = 0; i < 8; i++)
     {
@@ -34,16 +37,16 @@ void main()
         diffs[i] = 0;
       
       // read neighbour density
-      float density = imageLoad(windTex, tilePos).w;
-      float diff = (density - currentDensity) * 0.5;
-
-      // equalize the density
-      nextDensity += diff;
+      vec4 tile = imageLoad(windTex, tilePos);
+      float density = mix(0.84, 1, clamp(tile.z / 50000, 0, 1)) / max(tile.w, 0);
+      
 
       // add directional influence
       vec2 vDiff = vec2(diff) * vec2(neighbours[i]);
       // TODO rougly calculate the actual resulting velocity difference - percentage of difference: if the air density is 50% then the wind speeds up 50% times...
       // TODO add to current velocity
+      tile.x += vDiff.x;
+      tile.y += vDiff.y;
     }
 
     // TODO: height - adapt wind height according to terrain (& according to air density)

@@ -96,7 +96,7 @@ lsResult texture_set_raw(texture *pTexture, const void *pData, texture_format_ty
     break;
 
   case tft_f32:
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_FLOAT, pData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (GLsizei)resolution.x, (GLsizei)resolution.y, 0, GL_RGBA, GL_FLOAT, pData);
     break;
 
   case tft_u8r:

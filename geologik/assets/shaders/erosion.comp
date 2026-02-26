@@ -60,8 +60,6 @@ void main()
   uint y = lineIdx;
   uint offset = lineIdx * width;
 
-  // todo change per frame which neighbour to choose if all are the same height or offset from where to start...
-
   for (uint x = 0; x < width; x++)
   {    
     tile self = tiles[offset + x];
@@ -133,9 +131,6 @@ void main()
           break;
         }
       }
-
-      if (terrainTypeBeneath == 7) // check for bedrock
-        continue;
 
       uint diff = min((height - minNeighborHeight) / 2, selfWater);
 

@@ -202,16 +202,16 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
     }
 
     //LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.windShader, "shaders/wind.comp"));
-    //
-    //{
-    //  texture_create(&_Render.erosion.windTex);
-    //
-    //  float_t *pData;
-    //  LS_ERROR_CHECK(lsAllocZero(&pData, _Render.textureWidth * _Render.textureWidth * 4 /* 4 components, vel.x, vel.y, height, air density -> rgba texture */));
-    //
-    //  texture_set(&_Render.erosion.windTex, pData, vec2s((_Render.textureWidth)));
-    //  lsFreePtr(&pData);
-    //}
+    
+    {
+      texture_create(&_Render.erosion.windTex);
+    
+      float_t *pData;
+      LS_ERROR_CHECK(lsAllocZero(&pData, _Render.textureWidth * _Render.textureWidth * 4 /* 4 components, vel.x, vel.y, height, air density -> rgba texture */));
+    
+      texture_set(&_Render.erosion.windTex, pData, vec2s((_Render.textureWidth)));
+      lsFreePtr(&pData);
+    }
   }
 
   // Create Terrain.
@@ -380,7 +380,7 @@ void render_computeTerrain(const lsAppState *pAppState)
     texture_bind_image(&_Render.erosion.temperatureTex, 0, tia_read_write);
     shader_setUniform(&_Render.erosion.temperatureShader, "texture", &_Render.erosion.temperatureTex);
     
-    texture_bind_image(&_Render.erosion.windTex, 0, tia_read_write);
+    texture_bind_image(&_Render.erosion.windTex, 1, tia_read_write);
     shader_setUniform(&_Render.erosion.temperatureShader, "windTex", &_Render.erosion.windTex);
   
     shader_setUniform(&_Render.erosion.temperatureShader, "seasonTempFac", _Render.seasonTempFac);

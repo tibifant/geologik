@@ -17,6 +17,7 @@ You can use different inputs whilst the application is running:
 - `m` - melt snow
 - `t` - faster erosion
 - `LShift + F10` - Write the current terrain to file
+- `w`, `a`, `s`, `d`, `e`, `x`, (+ `LShift`) - camera movement
 
 #### Specification for the shared file format
 

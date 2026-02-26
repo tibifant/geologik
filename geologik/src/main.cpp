@@ -82,7 +82,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       render_finalize();
 
       const int64_t afterRender = lsGetCurrentTimeNs();
-
+      
       lsAppState_Swap(&_AppState);
 
       const float_t ms = (afterRender - before) * 1e-6f;
