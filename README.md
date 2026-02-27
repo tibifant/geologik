@@ -1,13 +1,17 @@
 # Geo-Logik
 ## Erosion Simulation
 
-Geo-Logik simulates erosion on a procedurally generated terrain.
+Geo-Logik simulates erosion on procedurally generated terrain.
 
-## How to run the application
+Hydralic Erosion under consideration of different simulated environment factors like:
+- temperature w/ sun movement & seasonal differences
+- rain & snow
+- melting and evaporation
 
-### How to load terrain
-
-### How to save terrain
+<a><img src="./assets/hydraulic_erosion0.png" alt="hydraulic erosion" style="width: pt; max-width: 100%; margin: 10pt auto;"></a>
+<br>
+<a><img src="./assets/hydraulic_erosion1.png" alt="hydraulic erosion" style="width: pt; max-width: 100%; margin: 10pt auto;"></a>
+<br>
 
 ## Keyboard Inputs
 
@@ -18,6 +22,21 @@ You can use different inputs whilst the application is running:
 - `t` - faster erosion
 - `LShift + F10` - Write the current terrain to file
 - `w`, `a`, `s`, `d`, `e`, `x`, (+ `LShift`) - camera movement
+
+## How to run the application
+You need CMake installed.
+
+- Create a `builds` folder in the project root folder
+- From the `builds` folder in command line run `cmake ..` to generate a `.sln` file
+- Open the solution file in Visual Studio
+- Start the application.
+
+### How to load terrain from file
+- Enter the filename as command line parameter.
+
+### How to save terrain to a file
+- Press `LShift + F10` whilst the appilcation is running.
+- Find the file in the `builds` folder as `out_terrain.bin`
 
 #### Specification for the shared file format
 
