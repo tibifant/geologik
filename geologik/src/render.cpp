@@ -183,7 +183,7 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
   _Render.textureWidth = pTerrain->width / 4;
 
   // Create Erosion Buffer & Shader.
-  {    
+  {
     LS_ERROR_CHECK(gpuBuffer_create(&_Render.erosion.gpuBuffer, gbat_read_only));
     LS_ERROR_CHECK(gpuBuffer_set(&_Render.erosion.gpuBuffer, pTerrain->pTiles, pTerrain->width * pTerrain->width));
 
@@ -202,13 +202,13 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
     }
 
     LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.windShader, "shaders/wind.comp"));
-    
+
     {
       texture_create(&_Render.erosion.windTex);
-    
+
       float_t *pData;
       LS_ERROR_CHECK(lsAllocZero(&pData, _Render.textureWidth * _Render.textureWidth * 4 /* 4 components, vel.x, vel.y, height, air density -> rgba texture */));
-    
+
       texture_set(&_Render.erosion.windTex, pData, vec2s((_Render.textureWidth)));
       lsFreePtr(&pData);
     }
@@ -379,38 +379,38 @@ void render_computeTerrain(const lsAppState *pAppState)
 
     texture_bind_image(&_Render.erosion.temperatureTex, 0, tia_read_write);
     shader_setUniform(&_Render.erosion.temperatureShader, "texture", &_Render.erosion.temperatureTex);
-    
+
     texture_bind_image(&_Render.erosion.windTex, 1, tia_read_write);
     shader_setUniform(&_Render.erosion.temperatureShader, "windTex", &_Render.erosion.windTex);
-  
+
     shader_setUniform(&_Render.erosion.temperatureShader, "seasonTempFac", _Render.seasonTempFac);
-    shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.4f);
+    shader_setUniform(&_Render.erosion.temperatureShader, "lerpFactor", _Render.erosion.firstCall ? 1.f : 0.1f);
     shader_setUniform(&_Render.erosion.temperatureShader, "sunDir", _Render.sunDir);
     shader_setUniform(&_Render.erosion.temperatureShader, "width", _Render.terrainWidth);
     shader_setUniform(&_Render.erosion.temperatureShader, "textureWidth", _Render.textureWidth);
-  
+
     shader_dispatch_compute(&_Render.erosion.temperatureShader, _Render.textureWidth, 1, 1);
-    
+
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-  
-    if (_Render.erosion.firstCall)
-      _Render.erosion.firstCall = false;
   }
 
   // wind
   {
     shader_bind(&_Render.erosion.windShader);
-  
+
     texture_bind_image(&_Render.erosion.windTex, 0, tia_read_write);
     shader_setUniform(&_Render.erosion.windShader, "windTex", &_Render.erosion.windTex);
-  
+
     shader_setUniform(&_Render.erosion.windShader, "texWidth", _Render.textureWidth);
-  
+    shader_setUniform(&_Render.erosion.windShader, "velocityGradientInfluence", _Render.erosion.firstCall ? 1.f : 0.05f);
+    shader_setUniform(&_Render.erosion.windShader, "velocityNeighborInfluence", _Render.erosion.firstCall ? 1.f : 0.3f);
+    shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
+
     shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
-    
+
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
   }
-  
+
   // thawing, evaporation, rain
   {
     const bool thaw = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M);
@@ -433,6 +433,7 @@ void render_computeTerrain(const lsAppState *pAppState)
   }
 
   // erosion
+  if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_1))
   {
     shader_bind(&_Render.erosion.erosionShader);
     shader_setUniform(&_Render.erosion.erosionShader, "width", _Render.terrainWidth);
@@ -454,12 +455,15 @@ void render_computeTerrain(const lsAppState *pAppState)
       shader_dispatch_compute(&_Render.erosion.erosionShader, _Render.terrainWidth, 1, 1);
     }
   }
+
+  if (_Render.erosion.firstCall)
+    _Render.erosion.firstCall = false;
 }
 
 lsResult render_writeTerrainToFile()
 {
   lsResult result = lsR_Success;
-  
+
   size_t size;
   tile *pTiles = nullptr;
 

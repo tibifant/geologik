@@ -4,6 +4,9 @@ layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 uniform layout(rgba32f) image2D windTex; // vel.x, vel.y, height, air temp
 uniform uint texWidth;
+uniform float velocityGradientInfluence;
+uniform float velocityNeighborInfluence;
+uniform float sourceTemperatureInfluence;
 
 float density_from_height_temperature(float temp, float height)
 {
@@ -30,6 +33,8 @@ void main()
 
     vec4 currentTile = imageLoad(windTex, texCoord);
     float currentDensity = density_from_height_temperature(currentTile.w, 50000);
+    vec2 newVel = currentTile.xy;
+    vec2 neighborVelocity = vec2(0);
 
     for (uint i = 0; i < 8; i++)
     {
@@ -40,6 +45,8 @@ void main()
       
       // read neighbour density
       vec4 tile = imageLoad(windTex, tilePos);
+      neighborVelocity += tile.xy;
+
       float density = density_from_height_temperature(tile.w, 0);
       
       // if neighbour density higher move away from neighbour
@@ -47,16 +54,20 @@ void main()
 
       // add directional influence
       vec2 vDiff = vec2(densityDiff) * vec2(neighbours[i]);
-      // TODO rougly calculate the actual resulting velocity difference - percentage of difference: if the air density is 50% then the wind speeds up 50% times...
-      // TODO add to current velocity
-      currentTile.x += vDiff.x;
-      currentTile.y += vDiff.y;
+      newVel += vDiff;
     }
 
     // TODO: height - adapt wind height according to terrain (& according to air density)
     
     // set new wind cell values in texture
-    currentTile.z = currentDensity;
+    currentTile.xy = mix(newVel, currentTile.xy, velocityGradientInfluence);
+    currentTile.xy = mix(neighborVelocity * 0.125, currentTile.xy, velocityNeighborInfluence);
+
+    ivec2 sourcePos = texCoord + ivec2(normalize(currentTile.xy) * 2);
+    vec4 sourceTile = imageLoad(windTex, sourcePos);
+
+    currentTile.w = mix(sourceTile.w, currentTile.w, sourceTemperatureInfluence);
+
     imageStore(windTex, texCoord, currentTile);
   }
 }
