@@ -46,7 +46,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   {
     lsFail();
   }
-
+  
   {
     const float_t updateTimeMs = 1000.0f / 120.f;
     size_t frameCount = 0;

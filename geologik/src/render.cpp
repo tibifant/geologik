@@ -201,7 +201,7 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
       lsFreePtr(&pData);
     }
 
-    //LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.windShader, "shaders/wind.comp"));
+    LS_ERROR_CHECK(shader_createFromFile_compute(&_Render.erosion.windShader, "shaders/wind.comp"));
     
     {
       texture_create(&_Render.erosion.windTex);
@@ -397,21 +397,19 @@ void render_computeTerrain(const lsAppState *pAppState)
       _Render.erosion.firstCall = false;
   }
 
-  //// wind
-  //{
-  //  shader_bind(&_Render.erosion.windShader);
-  //  texture_bind_image(&_Render.erosion.temperatureTex, 0, tia_read_write);
-  //  shader_setUniform(&_Render.erosion.windShader, "tempTex", &_Render.erosion.temperatureTex);
-  //
-  //  texture_bind_image(&_Render.erosion.windTex, 1, tia_read_write);
-  //  shader_setUniform(&_Render.erosion.windShader, "windTex", &_Render.erosion.windTex);
-  //
-  //  shader_setUniform(&_Render.erosion.windShader, "texWidth", _Render.textureWidth);
-  //
-  //  shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
-  //  
-  //  glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-  //}
+  // wind
+  {
+    shader_bind(&_Render.erosion.windShader);
+  
+    texture_bind_image(&_Render.erosion.windTex, 0, tia_read_write);
+    shader_setUniform(&_Render.erosion.windShader, "windTex", &_Render.erosion.windTex);
+  
+    shader_setUniform(&_Render.erosion.windShader, "texWidth", _Render.textureWidth);
+  
+    shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
+    
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+  }
   
   // thawing, evaporation, rain
   {

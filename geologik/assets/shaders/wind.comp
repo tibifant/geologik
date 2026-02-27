@@ -2,9 +2,14 @@
 
 layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
-uniform layout(r8, binding = 0) image2D tempTex;
-uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x, vel.y, height, air temp
+uniform layout(rgba32f) image2D windTex; // vel.x, vel.y, height, air temp
 uniform uint texWidth;
+
+float density_from_height_temperature(float temp, float height)
+{
+  float pressure = mix(1000, 840, clamp(height / 50000, 0, 1)); // density at 5000m ~840 N/m^2, at 0m ~1000 N/m^2
+  return pressure / (287.058 /*gas constant for dry air*/ + temp + 273.15 /*convert to kelvin*/);
+}
 
 const ivec2 neighbours[8] = ivec2[8](ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1));
 
@@ -24,33 +29,34 @@ void main()
     // wind: ~ 0 km/h - 140 km/h 
 
     vec4 currentTile = imageLoad(windTex, texCoord);
-    float currentTemp = currentTile.w;
-
-    float currentPressure = mix(0.84, 1, clamp(currentTile.z / 50000, 0, 1)); // density at 5000m ~0.84, at 0m ~1
-    float currentDensity = currentPressure / max(currentTemp, 0);
+    float currentDensity = density_from_height_temperature(currentTile.w, 50000);
 
     for (uint i = 0; i < 8; i++)
     {
       ivec2 tilePos = texCoord + neighbours[i];
 
       if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= texWidth || tilePos.y >= texWidth)
-        diffs[i] = 0;
+        continue;
       
       // read neighbour density
       vec4 tile = imageLoad(windTex, tilePos);
-      float density = mix(0.84, 1, clamp(tile.z / 50000, 0, 1)) / max(tile.w, 0);
+      float density = density_from_height_temperature(tile.w, 0);
       
+      // if neighbour density higher move away from neighbour
+      float densityDiff = currentDensity - density;
 
       // add directional influence
-      vec2 vDiff = vec2(diff) * vec2(neighbours[i]);
+      vec2 vDiff = vec2(densityDiff) * vec2(neighbours[i]);
       // TODO rougly calculate the actual resulting velocity difference - percentage of difference: if the air density is 50% then the wind speeds up 50% times...
       // TODO add to current velocity
-      tile.x += vDiff.x;
-      tile.y += vDiff.y;
+      currentTile.x += vDiff.x;
+      currentTile.y += vDiff.y;
     }
 
     // TODO: height - adapt wind height according to terrain (& according to air density)
     
     // set new wind cell values in texture
+    currentTile.z = currentDensity;
+    imageStore(windTex, texCoord, currentTile);
   }
 }
