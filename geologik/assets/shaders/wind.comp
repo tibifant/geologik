@@ -7,8 +7,8 @@ uniform uint texWidth;
 
 float density_from_height_temperature(float temp, float height)
 {
-  float pressure = mix(1000, 840, clamp(height / 50000, 0, 1)); // density at 5000m ~840 N/m^2, at 0m ~1000 N/m^2
-  return pressure / (287.058 /*gas constant for dry air*/ + temp + 273.15 /*convert to kelvin*/);
+  float pressure = mix(101325, 85113, clamp(height / 50000, 0, 1)); // density at 5000m ~85113 N/m^2, at 0m ~101325 N/m^2
+  return pressure / (287.058 /*gas constant for dry air*/ * (temp + 273.15 /*convert to kelvin*/));
 }
 
 const ivec2 neighbours[8] = ivec2[8](ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1));
