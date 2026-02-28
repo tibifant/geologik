@@ -52,7 +52,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
     size_t frameCount = 0;
     float_t frameTimesMs = 0;
     float_t cpuTimesMs = 0;
-
+    
     while (lsAppState_HandleWindowEvents(&_AppState))
     {
       if (lsKeyboardState_IsKeyDown(&_AppState.keyboardState, SDL_SCANCODE_LCTRL) && lsKeyboardState_KeyPress(&_AppState.keyboardState, SDL_SCANCODE_F10))
@@ -76,7 +76,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
         render_drawScene();
         render_endFrame(&_AppState);
       }
-
+      
       const int64_t afterCPU = lsGetCurrentTimeNs();
 
       render_finalize();

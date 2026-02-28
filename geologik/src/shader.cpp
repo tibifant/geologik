@@ -412,7 +412,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
 
     puts("Error compiling compute shader.\nThe following error occured:");
     puts(buffer);
-
+    
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
   

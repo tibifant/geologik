@@ -60,6 +60,27 @@ uint layerHeightFromIndex(uint index, uint layer)
     return ret & mask;
 }
 
+vec4 interpolate_wind(uvec2 pos, uint tile_idx)
+{
+  const ivec2 maxTexWidth = ivec2(terrainWidth / 4 - 1);
+
+  vec2 fTexPos = max(vec2(pos) / vec2(4.0) - vec2(0.5), vec2(0, 0));
+  ivec2 texPos = ivec2(fTexPos);
+
+  vec4 tSelf = imageLoad(windTex, texPos);
+  vec4 tRight = imageLoad(windTex, min(texPos + ivec2(1, 0), maxTexWidth));
+  vec4 tBottom = imageLoad(windTex, min(texPos + ivec2(0, 1), maxTexWidth));
+  vec4 tBottomRight = imageLoad(windTex, min(texPos + ivec2(1, 1), maxTexWidth));
+  
+  vec2 fac = mod(fTexPos, 1.0);
+  
+  vec4 top = mix(tSelf, tRight, fac.x);
+  vec4 bottom = mix(tBottom, tBottomRight, fac.x);
+  vec4 total = mix(top, bottom, fac.y);
+
+  return total;
+}
+
 void main()
 {
   uint lineIdx = gl_GlobalInvocationID.x;
@@ -71,11 +92,11 @@ void main()
     uint selfIndex = offset + x;
 
     ivec2 windTexCoord = ivec2(x / 4, y / 4);
-    vec4 windData = imageLoad(windTex, windTexCoord);
+    vec4 windData = interpolate_wind(uvec2(x, y), selfIndex);
     float windStrength = length(windData.xy);
     
     // if wind strong enough
-    if (windStrength < 0.01)
+    if (windStrength < 0.008)
       continue;
 
     if (windData.z - height_from_idx(selfIndex) > 3)
@@ -86,17 +107,18 @@ void main()
 
     ivec2 targetTilePos = ivec2(x, y) + ivec2(windDir);
     uint targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
+    bool outOfBounds = false;
+    uint windDirTileHeight = height_from_idx(targetTileIdx);
 
-    while (targetTilePos.x > 0 && targetTilePos.y > 0 && targetTilePos.x < terrainWidth && targetTilePos.y < terrainWidth)
+    while (particleHeight > float(windDirTileHeight))
     {
-      uint windDirTileHeight = height_from_idx(targetTileIdx);
-
-      if (float(windDirTileHeight) >= particleHeight)
+      if (targetTilePos.x < 0 && targetTilePos.y < 0 && targetTilePos.x > terrainWidth - 1 && targetTilePos.y > terrainWidth - 1)
+      {
+        outOfBounds = true;
         break;
+      }
 
-      // fall down
       particleHeight -= 0.1;
-
       windDir *= 0.95;
 
       if (dot(windDir, windDir) < 1)
@@ -104,6 +126,7 @@ void main()
 
       targetTilePos += ivec2(windDir);
       targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
+      windDirTileHeight = height_from_idx(targetTileIdx);
     }
 
     uint highestTerrainType = 0;
@@ -123,12 +146,15 @@ void main()
       }
     }
 
-    uint diff = min(layerHeightFromIndex(selfIndex, highestTerrainType), 5); 
+    float windStrengthScaled = clamp(windStrength * 12, 0, 1);
+    uint diff = min(layerHeightFromIndex(selfIndex, highestTerrainType), uint(5.0 * windStrengthScaled)); // TODO check above only the height + this (when setting the particles)
 
     if (highestTerrainType != 7)
     {
       removeTerrain(selfIndex, diff, highestTerrainType);
-      addTerrain(targetTileIdx, diff, highestTerrainType);
+
+      if (!outOfBounds)
+        addTerrain(targetTileIdx, diff, highestTerrainType);
     }
   }   
 }
