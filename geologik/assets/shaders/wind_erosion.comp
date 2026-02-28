@@ -1,0 +1,134 @@
+#version 430 core
+
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+struct tile
+{
+  uint heights[4];
+};
+
+layout(binding = 0, std430) buffer data 
+{
+  tile tiles[];
+};
+
+uniform layout(rgba32f) image2D windTex; // vel.x, vel.y, height, air temp
+uniform uint terrainWidth;
+
+const uint mask = 0xFFFF;
+
+uint height_from_idx(uint idx)
+{
+  uint height = 0;
+
+  for (uint i = 0; i < 4; i++)
+  {
+    height += tiles[idx].heights[i] & mask;
+    height += tiles[idx].heights[i] >> 16;
+  }
+
+  return height;
+}
+
+void addTerrain(uint index, uint amount, uint terrainType)
+{
+  uint val = amount;
+
+  if ((terrainType & 1) == 1)
+    val <<= 16;
+  
+  atomicAdd(tiles[index].heights[terrainType / 2], val);
+}
+
+void removeTerrain(uint index, uint amount, uint terrainType)
+{
+  uint val = (~amount + 1);
+
+  if ((terrainType & 1) == 1)
+    val <<= 16;
+
+  atomicAdd(tiles[index].heights[terrainType / 2], val);
+}
+
+uint layerHeightFromIndex(uint index, uint layer)
+{
+  uint ret = tiles[index].heights[layer / 2];
+
+  if ((layer & 1) == 1)
+    return ret << 16;
+  else
+    return ret & mask;
+}
+
+void main()
+{
+  uint lineIdx = gl_GlobalInvocationID.x;
+  uint y = lineIdx;
+  uint offset = lineIdx * terrainWidth;
+
+  for (uint x = 0; x < terrainWidth; x++)
+  {
+    uint selfIndex = offset + x;
+
+    ivec2 windTexCoord = ivec2(x / 4, y / 4);
+    vec4 windData = imageLoad(windTex, windTexCoord);
+    float windStrength = length(windData.xy);
+    
+    // if wind strong enough
+    if (windStrength < 0.01)
+      continue;
+
+    if (windData.z - height_from_idx(selfIndex) > 3)
+      continue;
+
+    float particleHeight = windData.z;
+    vec2 windDir = windData.xy * 20;
+
+    ivec2 targetTilePos = ivec2(x, y) + ivec2(windDir);
+    uint targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
+
+    while (targetTilePos.x > 0 && targetTilePos.y > 0 && targetTilePos.x < terrainWidth && targetTilePos.y < terrainWidth)
+    {
+      uint windDirTileHeight = height_from_idx(targetTileIdx);
+
+      if (float(windDirTileHeight) >= particleHeight)
+        break;
+
+      // fall down
+      particleHeight -= 0.1;
+
+      windDir *= 0.95;
+
+      if (dot(windDir, windDir) < 1)
+        break;
+
+      targetTilePos += ivec2(windDir);
+      targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
+    }
+
+    uint highestTerrainType = 0;
+    tile selfTile = tiles[selfIndex];
+
+    for (uint i = 0; i < 4; i++)
+    {
+      if ((selfTile.heights[i] & mask) > 0)
+      {
+        highestTerrainType = i * 2;
+        break;
+      }
+      else if ((selfTile.heights[i] >> 16) > 0)
+      {
+        highestTerrainType = i * 2 + 1;
+        break;
+      }
+    }
+
+    uint diff = min(layerHeightFromIndex(selfIndex, highestTerrainType), 5); 
+
+    if (highestTerrainType != 7)
+    {
+      removeTerrain(selfIndex, diff, highestTerrainType);
+      addTerrain(targetTileIdx, diff, highestTerrainType);
+    }
+  }   
+}

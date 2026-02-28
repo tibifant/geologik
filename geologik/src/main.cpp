@@ -26,7 +26,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   uint16_t width = 1024;
 
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
-
+  
   if (argc == 2)
   {
     terrain t;

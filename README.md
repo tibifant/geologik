@@ -17,6 +17,8 @@ Hydralic Erosion under consideration of different simulated environment factors 
 
 You can use different inputs whilst the application is running:
 
+- `1` - hydraulic erosion
+- `2` - wind erosion
 - `p` - rain / snowfall
 - `m` - melt snow
 - `t` - faster erosion

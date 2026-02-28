@@ -415,7 +415,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
 
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-
+  
   if (requestNewProgram)
     pShader->shaderProgram = glCreateProgram();
   else
@@ -426,7 +426,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   glLinkProgram(pShader->shaderProgram);
 
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
-
+  
   if (status != GL_TRUE)
   {
     char buffer[1024];

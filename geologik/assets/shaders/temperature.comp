@@ -98,7 +98,7 @@ void main()
     // set new temp
     imageStore(texture, texCoord, vec4(scaledTemp, 0, 0, 0));
     wind.z = avgHeight; // REMOVE AFTER TESTING!
-    imageStore(windTex, texCoord, wind);
     
+    imageStore(windTex, texCoord, wind);
   }
 }
