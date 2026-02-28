@@ -22,7 +22,7 @@ int32_t main(int32_t argc, char **pArgv)
 lsResult MainGameLoop(int32_t argc, const char **pArgs)
 {
   lsResult result = lsR_Success;
-  
+
   uint16_t width = 1024;
 
   LS_ERROR_CHECK(lsAppState_Create(&_AppState, "Engine", vec2s(1600, 1200)));
@@ -46,7 +46,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
   {
     lsFail();
   }
-  
+
   {
     const float_t updateTimeMs = 1000.0f / 120.f;
     size_t frameCount = 0;
@@ -73,7 +73,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
         render_startFrame(&_AppState);
         render_update(&_AppState);
         render_computeTerrain(&_AppState);
-        render_drawTerrain();
+        render_drawScene();
         render_endFrame(&_AppState);
       }
 
@@ -82,7 +82,7 @@ lsResult MainGameLoop(int32_t argc, const char **pArgs)
       render_finalize();
 
       const int64_t afterRender = lsGetCurrentTimeNs();
-      
+
       lsAppState_Swap(&_AppState);
 
       const float_t ms = (afterRender - before) * 1e-6f;

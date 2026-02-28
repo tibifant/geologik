@@ -2,16 +2,58 @@
 
 layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
+struct tile
+{
+  uint heights[4];
+};
+
+layout(binding = 0, std430) buffer data 
+{
+  tile tiles[];
+};
+
 uniform layout(rgba32f) image2D windTex; // vel.x, vel.y, height, air temp
 uniform uint texWidth;
+uniform uint terrainWidth;
 uniform float velocityGradientInfluence;
 uniform float velocityNeighborInfluence;
 uniform float sourceTemperatureInfluence;
+uniform float sourceVelocityInfluence;
 
 float density_from_height_temperature(float temp, float height)
 {
   float pressure = mix(101325, 85113, clamp(height / 50000, 0, 1)); // density at 5000m ~85113 N/m^2, at 0m ~101325 N/m^2
   return pressure / (287.058 /*gas constant for dry air*/ * (temp + 273.15 /*convert to kelvin*/));
+}
+
+uint height_from_idx(uint idx)
+{
+  uint mask = 0xFFFF;
+  uint height = 0;
+
+  for (uint i = 0; i < 4; i++)
+  {
+    height += tiles[idx].heights[i] & mask;
+    height += tiles[idx].heights[i] >> 16;
+  }
+
+  return height;
+}
+
+float height_from_position(ivec2 pos)
+{
+  uvec2 samplePos = pos * uvec2(4, 4);
+  uvec2 samplePosTop = samplePos + uvec2(2, 0);
+  uvec2 samplePosRight = samplePos + uvec2(3, 2);
+  uvec2 samplePosBottom = samplePos + uvec2(2, 3);
+  uvec2 samplePosLeft = samplePos + uvec2(0, 2);
+
+  uint heightTop = height_from_idx(samplePosTop.y * terrainWidth + samplePosTop.x);
+  uint heightRight = height_from_idx(samplePosRight.y * terrainWidth + samplePosRight.x);
+  uint heightBottom = height_from_idx(samplePosBottom.y * terrainWidth + samplePosBottom.x);
+  uint heightLeft = height_from_idx(samplePosLeft.y * terrainWidth + samplePosLeft.x);
+
+  return avgHeight = (heightTop + heightRight + heightBottom + heightLeft) / 4;
 }
 
 const ivec2 neighbours[8] = ivec2[8](ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1));
@@ -35,6 +77,8 @@ void main()
     float currentDensity = density_from_height_temperature(currentTile.w, 50000);
     vec2 newVel = currentTile.xy;
     vec2 neighborVelocity = vec2(0);
+    float neighborHeight = 0;
+    int count = 1;
 
     for (uint i = 0; i < 8; i++)
     {
@@ -43,6 +87,8 @@ void main()
       if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= texWidth || tilePos.y >= texWidth)
         continue;
       
+      count++;
+
       // read neighbour density
       vec4 tile = imageLoad(windTex, tilePos);
       neighborVelocity += tile.xy;
@@ -58,15 +104,30 @@ void main()
     }
 
     // TODO: height - adapt wind height according to terrain (& according to air density)
+    newVel *= 10;
     
-    // set new wind cell values in texture
-    currentTile.xy = mix(newVel, currentTile.xy, velocityGradientInfluence);
-    currentTile.xy = mix(neighborVelocity * 0.125, currentTile.xy, velocityNeighborInfluence);
-
-    ivec2 sourcePos = texCoord + ivec2(normalize(currentTile.xy) * 2);
+    ivec2 sourcePos = texCoord + ivec2(normalize(currentTile.xy) * 1.5);
     vec4 sourceTile = imageLoad(windTex, sourcePos);
 
-    currentTile.w = mix(sourceTile.w, currentTile.w, sourceTemperatureInfluence);
+    float heightDiffFac = sourceTile.z / currentTile.z;
+    heightDiffFac *= heightDiffFac;
+
+    newVel *= heightDiffFac;
+
+    // set new wind cell values in texture
+    currentTile.xy = mix(currentTile.xy, newVel / float(count), velocityGradientInfluence);
+    currentTile.xy = mix(currentTile.xy, neighborVelocity / float(count), velocityNeighborInfluence);
+    currentTile.xy += vec2(-0.00001, -0.000005); // coreolis
+    currentTile.xy *= 0.99; // air friction
+
+    currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
+    
+    vec2 velDiff = sourceTile.xy - currentTile.xy;
+    velDiff *= heightDiffFac;
+    currentTile.xy = mix(currentTile.xy, currentTile.xy + velDiff, sourceVelocityInfluence);
+
+    currentTile.z = min(mix(currentTile.z, sourceTile.z, sourceHeightInfluence), terrainHeight); // TODO!
+    // TODO remove height in temp shader
 
     imageStore(windTex, texCoord, currentTile);
   }

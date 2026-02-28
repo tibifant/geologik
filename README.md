@@ -20,7 +20,7 @@ You can use different inputs whilst the application is running:
 - `p` - rain / snowfall
 - `m` - melt snow
 - `t` - faster erosion
-- `LShift + F10` - Write the current terrain to file
+- `LCtrl + F10` - Write the current terrain to file
 - `w`, `a`, `s`, `d`, `e`, `x`, (+ `LShift`) - camera movement
 
 ## How to run the application
@@ -35,7 +35,7 @@ You need CMake installed.
 - Enter the filename as command line parameter.
 
 ### How to save terrain to a file
-- Press `LShift + F10` whilst the appilcation is running.
+- Press `LCtrl + F10` whilst the appilcation is running.
 - Find the file in the `builds` folder as `out_terrain.bin`
 
 #### Specification for the shared file format
@@ -43,7 +43,7 @@ You need CMake installed.
 ```
 // all data is written to the file raw -> this is a binary data format.
 
-uint8_t version = 1; // for now this is 1, but may be incremented in the furure if we ever decide to change anything about the file format.
+uint8_t version = 1;
 uint16_t width;
 uint16_t height;
 
@@ -53,7 +53,7 @@ tile data[width * height];
 
 struct tile
 {
-  uint16_t layers[8] { // all the heights are in decimeters (sry).
+  uint16_t layers[8] { // height in dm.
     snowHeight, 
     waterHeight, 
     grassHeight, 

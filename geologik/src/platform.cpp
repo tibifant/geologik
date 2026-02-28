@@ -83,6 +83,7 @@ lsResult lsAppState_Create(lsAppState *pAppState, const char *title, const vec2s
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
   SDL_ShowCursor(SDL_DISABLE);
+  SDL_GL_SetSwapInterval(1);
 
   // Set Maxiumum Depth Precision.
   {
@@ -173,7 +174,7 @@ lsResult lsAppState_Create(lsAppState *pAppState, const char *title, const vec2s
 
     if (!CheckRemoteDebuggerPresent(GetCurrentProcess(), &remoteDebuggerPresent))
       remoteDebuggerPresent = false;
-
+    
     if (IsDebuggerPresent() || remoteDebuggerPresent)
       __debugbreak();
 

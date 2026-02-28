@@ -69,7 +69,7 @@ struct vb_attributeQuery_internal<T>
     const uint32_t attributeIndex = shader_getAttributeIndex(pShader, T::getAttributeName());
 
     glEnableVertexAttribArray(attributeIndex);
-    
+
     if constexpr (T::isInteger)
       glVertexAttribIPointer(attributeIndex, (GLint)T::getValuesPerBlock(), T::getDataType(), (GLsizei)totalSize, (const void *)offset);
     else
@@ -206,7 +206,7 @@ inline void vertexBuffer_setCount(vertexBuffer<Args...> *pBuffer, const size_t c
 }
 
 template<typename ...Args>
-inline void vertexBuffer_setAttributes(vertexBuffer<Args...> *pBuffer)
+inline void vertexBuffer_setAttributes(vertexBuffer<Args...> *pBuffer, shader *pShader)
 {
   lsAssert(pBuffer != nullptr);
   lsAssert(pBuffer->initialized);
@@ -214,8 +214,22 @@ inline void vertexBuffer_setAttributes(vertexBuffer<Args...> *pBuffer)
   glBindVertexArray(pBuffer->vao);
   glBindBuffer(GL_ARRAY_BUFFER, pBuffer->vbo);
 
-  shader_bind(pBuffer->pShader);
-  vb_attributeQuery_internal_setAttributes<Args...>(pBuffer->pShader);
+  shader_bind(pShader);
+  vb_attributeQuery_internal_setAttributes<Args...>(pShader);
+}
+
+template<typename ...Args>
+inline void vertexBuffer_setAttributes(vertexBuffer<Args...> *pBuffer)
+{
+  vertexBuffer_setAttributes(pBuffer, pBuffer->pShader);
+}
+
+template<typename ...Args>
+inline void vertexBuffer_render(vertexBuffer<Args...> *pBuffer, shader *pShader)
+{
+  vertexBuffer_setAttributes(pBuffer, pShader);
+
+  glDrawArrays(pBuffer->renderMode, 0, (GLsizei)pBuffer->count);
 }
 
 template<typename ...Args>
@@ -305,7 +319,7 @@ inline void instancedVertexBuffer_setInstanceCount(instancedVertexBuffer<T, Args
 }
 
 template<typename T, typename ...Args>
-inline void instancedVertexBuffer_render(instancedVertexBuffer<T, Args...> *pBuffer)
+inline void instancedVertexBuffer_render(instancedVertexBuffer<T, Args...> *pBuffer, shader *pShader)
 {
   vertexBuffer_setAttributes(&pBuffer->instancedBuffer);
 
@@ -314,7 +328,13 @@ inline void instancedVertexBuffer_render(instancedVertexBuffer<T, Args...> *pBuf
   glEnableVertexAttribArray(2);
   glBindBuffer(GL_ARRAY_BUFFER, pBuffer->instanceVBO);
 
-  vb_attributeQuery_internal_setAttributes<Args...>(pBuffer->instancedBuffer.pShader, true);
+  vb_attributeQuery_internal_setAttributes<Args...>(pShader, true);
 
   glDrawArraysInstanced(pBuffer->instancedBuffer.renderMode, 0, (GLsizei)pBuffer->instancedBuffer.count, (GLsizei)pBuffer->instanceCount);
+}
+
+template<typename T, typename ...Args>
+inline void instancedVertexBuffer_render(instancedVertexBuffer<T, Args...> *pBuffer)
+{
+  instancedVertexBuffer_render(pBuffer, pBuffer->instancedBuffer.pShader);
 }

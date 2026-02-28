@@ -18,7 +18,7 @@ void render_setTicksSinceOrigin(const float_t ticksSinceOrigin);
 void render_drawQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw2DQuad(const matrix &model, const render_textureId textureIndex);
 void render_draw3DQuad(const matrix &model, const render_textureId textureIndex);
-void render_drawTerrain();
+void render_drawScene();
 
 void render_computeTerrain(const lsAppState *pAppState);
 

@@ -46,10 +46,10 @@ lsResult shader_createFromFile_vertex_fragment(_Out_ shader *pShader, const char
 
   LS_ERROR_CHECK(shader_create_vertex_fragment(pShader, vertexSource, fragmentSource));
 
-  #ifdef _DEBUG
-    pShader->vertexPath = _strdup(vertexPath);
-    pShader->fragmentPath = _strdup(fragmentPath);
-  #endif
+#ifdef _DEBUG
+  pShader->vertexPath = _strdup(vertexPath);
+  pShader->fragmentPath = _strdup(fragmentPath);
+#endif
 
 epilogue:
   lsFreePtr(&vertexSource);
@@ -63,11 +63,11 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
   lsResult result = lsR_Success;
 
   char *computeSource = nullptr;
-  
+
   LS_ERROR_IF(pShader == nullptr || computePath == nullptr, lsR_ArgumentNull);
 
   pShader->type = st_compute;
-  
+
   {
     size_t bytes = 0; // unused.
     LS_ERROR_CHECK(lsReadFile(computePath, &computeSource, &bytes));
@@ -78,10 +78,10 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
 #ifdef _DEBUG
   pShader->computePath = _strdup(computePath);
 #endif
-  
+
 epilogue:
   lsFreePtr(&computeSource);
-  
+
   return result;
 }
 
@@ -89,7 +89,7 @@ void shader_dispatch_compute(const shader *pShader, const uint32_t workgroupCoun
 {
   lsAssert(pShader != nullptr);
   lsAssert(pShader->initialized);
-  
+
   glDispatchCompute(workgroupCountX, workgroupCountY, workgroupCountZ);
 }
 
@@ -121,7 +121,13 @@ lsResult shader_reload_vertex_fragment(shader *pShader)
     LS_ERROR_CHECK(lsReadFile(pShader->vertexPath, &vertexSource, &bytes));
     LS_ERROR_CHECK(lsReadFile(pShader->fragmentPath, &fragmentSource, &bytes));
 
-    LS_ERROR_CHECK(shader_create_vertex_fragment(pShader, vertexSource, fragmentSource));
+    shader temp;
+    LS_ERROR_CHECK(shader_create_vertex_fragment(&temp, vertexSource, fragmentSource));
+    std::swap(temp.fragmentPath, pShader->fragmentPath);
+    std::swap(temp.vertexPath, pShader->vertexPath);
+
+    std::swap(*pShader, temp); // leaking memory!!!
+    shader_destroy(&temp);
   }
 
 epilogue:
@@ -182,7 +188,7 @@ void shader_destroy(shader *pShader)
     pShader->shaderProgram = 0;
   }
 
-  #ifdef _DEBUG
+#ifdef _DEBUG
   if (pShader->type == st_vertex_fragment)
   {
     lsFreePtr(&pShader->vertexPath);
@@ -192,7 +198,7 @@ void shader_destroy(shader *pShader)
   {
     lsFreePtr(&pShader->computePath);
   }
-  #endif
+#endif
 
   lsFreePtr(&pShader->pUniformReferences);
   lsFreePtr(&pShader->pAttributeReferences);
@@ -214,12 +220,12 @@ uint32_t shader_getUniformIndex(shader *pShader, const char *uniformName)
 
   if (length >= LS_ARRAYSIZE_C_STYLE(shader_name_ref::name))
     return ref.index;
-  
+
   if (LS_FAILED(lsRealloc(&pShader->pUniformReferences, pShader->uniformReferenceCount + 1)))
     return ref.index;
 
   memcpy(ref.name, uniformName, length + 1);
-  
+
   pShader->pUniformReferences[pShader->uniformReferenceCount] = ref;
   pShader->uniformReferenceCount++;
 
@@ -287,14 +293,14 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
   char *cleanVertexSource = nullptr;
   char *cleanFragmentSource = nullptr;
-  
+
   GLuint vertexShaderHandle = (GLuint)-1;
   GLuint fragmentShaderHandle = (GLuint)-1;
 
   LS_ERROR_IF(pShader == nullptr || vertexSource == nullptr || fragmentSource == nullptr, lsR_ArgumentNull);
 
   pShader->type = st_vertex_fragment;
-  
+
   LS_ERROR_CHECK(shader_allocCleanSource_internal(vertexSource, &cleanVertexSource));
   LS_ERROR_CHECK(shader_allocCleanSource_internal(fragmentSource, &cleanFragmentSource));
 
@@ -304,7 +310,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
   GLint status;
   glGetShaderiv(vertexShaderHandle, GL_COMPILE_STATUS, &status);
-  
+
   if (status != GL_TRUE)
   {
     char buffer[1024];
@@ -319,33 +325,33 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShaderHandle, 1, &fragmentSource, NULL);
   glCompileShader(fragmentShaderHandle);
-  
+
   status = GL_TRUE;
   glGetShaderiv(fragmentShaderHandle, GL_COMPILE_STATUS, &status);
-  
+
   if (status != GL_TRUE)
   {
     char buffer[1024];
     glGetShaderInfoLog(fragmentShaderHandle, sizeof(buffer), nullptr, buffer);
-    
+
     puts("Error compiling fragment shader.\nThe following error occured:");
     puts(buffer);
-    
+
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-  
+
   if (requestNewProgram)
     pShader->shaderProgram = glCreateProgram();
   else
     glUseProgram(pShader->shaderProgram);
-  
+
   glAttachShader(pShader->shaderProgram, vertexShaderHandle);
   glAttachShader(pShader->shaderProgram, fragmentShaderHandle);
 
   glLinkProgram(pShader->shaderProgram);
-  
+
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
-  
+
   if (status != GL_TRUE)
   {
     char buffer[1024];
@@ -353,19 +359,19 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     puts("Error linking shader.\nThe following error occured:");
     puts(buffer);
-    
+
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-  
+
   pShader->initialized = true;
-  
+
 epilogue:
   lsFreePtr(&cleanVertexSource);
   lsFreePtr(&cleanFragmentSource);
-  
+
   if (vertexShaderHandle != (GLuint)-1)
     glDeleteShader(vertexShaderHandle);
-  
+
   if (fragmentShaderHandle != (GLuint)-1)
     glDeleteShader(fragmentShaderHandle);
 
@@ -391,7 +397,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   pShader->type = st_compute;
 
   LS_ERROR_CHECK(shader_allocCleanSource_internal(computeSource, &cleanSource));
-  
+
   shaderHandle = glCreateShader(GL_COMPUTE_SHADER);
   glShaderSource(shaderHandle, 1, &computeSource, NULL);
   glCompileShader(shaderHandle);
@@ -403,37 +409,37 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   {
     char buffer[1024];
     glGetShaderInfoLog(shaderHandle, sizeof(buffer), nullptr, buffer);
-    
+
     puts("Error compiling compute shader.\nThe following error occured:");
     puts(buffer);
-    
+
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-  
+
   if (requestNewProgram)
     pShader->shaderProgram = glCreateProgram();
   else
     glUseProgram(pShader->shaderProgram);
-  
+
   glAttachShader(pShader->shaderProgram, shaderHandle);
-  
+
   glLinkProgram(pShader->shaderProgram);
-  
+
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
-  
+
   if (status != GL_TRUE)
   {
     char buffer[1024];
     glGetProgramInfoLog(pShader->shaderProgram, sizeof(buffer), nullptr, buffer);
-    
+
     puts("Error linking shader.\nThe following error occured:");
     puts(buffer);
 
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-  
+
   pShader->initialized = true;
-  
+
 epilogue:
   lsFreePtr(&cleanSource);
 

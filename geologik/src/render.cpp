@@ -67,9 +67,10 @@ static struct
 
   struct
   {
-    shader renderShader;
-    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer;
-  } terrain;
+    shader terrainShader;
+    shader windShader;
+    vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // -> plane segment?
+  } terrain; // -> scene?
 
   struct
   {
@@ -216,9 +217,10 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
 
   // Create Terrain.
   {
-    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.renderShader, "shaders/terrain.vert", "shaders/terrain.frag"));
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.terrainShader, "shaders/terrain.vert", "shaders/terrain.frag"));
+    LS_ERROR_CHECK(shader_createFromFile_vertex_fragment(&_Render.terrain.windShader, "shaders/wind.vert", "shaders/wind.frag"));
 
-    LS_ERROR_CHECK(vertexBuffer_create(&_Render.terrain.buffer, &_Render.terrain.renderShader));
+    LS_ERROR_CHECK(vertexBuffer_create(&_Render.terrain.buffer, &_Render.terrain.terrainShader));
     LS_ERROR_CHECK(set_terrain_vertexData());
   }
 
@@ -306,7 +308,7 @@ void render_destroy()
   pool_destroy(&_Render.textures);
 
   vertexBuffer_destroy(&_Render.terrain.buffer);
-  shader_destroy(&_Render.terrain.renderShader);
+  shader_destroy(&_Render.terrain.terrainShader);
 
   gpuBuffer_destroy(&_Render.erosion.gpuBuffer);
   shader_destroy(&_Render.erosion.erosionShader);
@@ -351,24 +353,45 @@ void render_drawSky()
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void render_drawTerrain()
+void render_drawScene()
 {
   glEnable(GL_CULL_FACE);
   glCullFace(GL_FRONT);
 
-  shader_bind(&_Render.terrain.renderShader);
-  shader_setUniform(&_Render.terrain.renderShader, "width", _Render.terrainWidth);
-  shader_setUniform(&_Render.terrain.renderShader, "vp", _Render.vp.Transpose());
-  shader_setUniform(&_Render.terrain.renderShader, "sunDir", _Render.sunDir);
+  shader_bind(&_Render.terrain.terrainShader);
+  shader_setUniform(&_Render.terrain.terrainShader, "width", _Render.terrainWidth);
+  shader_setUniform(&_Render.terrain.terrainShader, "vp", _Render.vp.Transpose());
+  shader_setUniform(&_Render.terrain.terrainShader, "sunDir", _Render.sunDir);
 
   for (uint32_t y = 0; y < _Render.terrainWidth; y += quadCountY)
   {
     for (uint32_t x = 0; x < _Render.terrainWidth; x += quadCountX)
     {
-      shader_setUniform(&_Render.terrain.renderShader, "offset", vec2u32(x, y));
+      shader_setUniform(&_Render.terrain.terrainShader, "offset", vec2u32(x, y));
       vertexBuffer_render(&_Render.terrain.buffer);
     }
   }
+
+  glDisable(GL_CULL_FACE);
+  render_setBlendMode(rBF_AlphaBlend);
+  render_setBlendEnabled(true);
+
+  texture_bind(&_Render.erosion.windTex, 1);
+  shader_bind(&_Render.terrain.windShader);
+  shader_setUniform(&_Render.terrain.windShader, "scale", _Render.terrainWidth / (float_t)_Render.erosion.windTex.resolution.y);
+  shader_setUniform(&_Render.terrain.windShader, "vp", _Render.vp.Transpose());
+  shader_setUniform(&_Render.terrain.windShader, "texture", &_Render.erosion.windTex);
+
+  for (uint32_t y = 0; y < _Render.erosion.windTex.resolution.y; y += quadCountY)
+  {
+    for (uint32_t x = 0; x < _Render.erosion.windTex.resolution.x; x += quadCountX)
+    {
+      shader_setUniform(&_Render.terrain.windShader, "offset", vec2u32(x, y));
+      vertexBuffer_render(&_Render.terrain.buffer, &_Render.terrain.windShader);
+    }
+  }
+
+  render_setBlendEnabled(false);
 }
 
 void render_computeTerrain(const lsAppState *pAppState)
@@ -403,8 +426,9 @@ void render_computeTerrain(const lsAppState *pAppState)
 
     shader_setUniform(&_Render.erosion.windShader, "texWidth", _Render.textureWidth);
     shader_setUniform(&_Render.erosion.windShader, "velocityGradientInfluence", _Render.erosion.firstCall ? 1.f : 0.05f);
-    shader_setUniform(&_Render.erosion.windShader, "velocityNeighborInfluence", _Render.erosion.firstCall ? 1.f : 0.3f);
-    shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
+    shader_setUniform(&_Render.erosion.windShader, "velocityNeighborInfluence", _Render.erosion.firstCall ? 1.f : 0.05f);
+    shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.3f);
+    shader_setUniform(&_Render.erosion.windShader, "sourceVelocityInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
 
     shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
 
@@ -537,10 +561,12 @@ lsResult render_reload_shader()
 {
   lsResult result = lsR_Success;
 
-  LS_ERROR_CHECK(shader_reload(&_Render.terrain.renderShader));
+  LS_ERROR_CHECK(shader_reload(&_Render.terrain.terrainShader));
+  LS_ERROR_CHECK(shader_reload(&_Render.terrain.windShader));
   LS_ERROR_CHECK(shader_reload(&_Render.erosion.environmentShader));
   LS_ERROR_CHECK(shader_reload(&_Render.erosion.erosionShader));
   LS_ERROR_CHECK(shader_reload(&_Render.erosion.temperatureShader));
+  LS_ERROR_CHECK(shader_reload(&_Render.erosion.windShader));
 
 epilogue:
   return result;
