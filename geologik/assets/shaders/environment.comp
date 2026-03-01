@@ -49,7 +49,7 @@ uint hash(uint x, uint y, uint v)
   return pcg_hash(((x * phi + y) * phi + v) * phi);
 }
 
-float interpolate_temperature(uvec2 pos, uint tile_idx)
+float interpolate_temperature(uvec2 pos)
 {
   const ivec2 maxTexWidth = ivec2(width / 4 - 1);
 
@@ -110,7 +110,7 @@ void main()
     const float maxTemp = 23;
     const float maxSunTemp = 8 * 2.2;
 
-    float temp = interpolate_temperature(uvec2(x, y), i) * (maxTemp + maxSunTemp) + minTemp;
+    float temp = interpolate_temperature(uvec2(x, y)) * (maxTemp + maxSunTemp) + minTemp;
 
     if (rain)
     {
