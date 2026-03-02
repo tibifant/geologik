@@ -89,7 +89,7 @@ void main()
 
     vec2 windDir = windData.xy * 20;
 
-    if (dot(windDir, windDir) < 1) // wind not strong enough
+    if (dot(windDir, windDir) < 1) // wind not strong enough to carry to another tile
       continue;
 
     float particleHeight = windData.z;
@@ -101,7 +101,7 @@ void main()
 
     while (particleHeight > float(targetTileHeight))
     {
-      particleHeight -= 0.1;
+      particleHeight -= 1;//0.1;
       windDir *= 0.95; // slow down over time
 
       if (dot(windDir, windDir) < 1)

@@ -409,7 +409,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   {
     char buffer[1024];
     glGetShaderInfoLog(shaderHandle, sizeof(buffer), nullptr, buffer);
-
+    
     puts("Error compiling compute shader.\nThe following error occured:");
     puts(buffer);
     
