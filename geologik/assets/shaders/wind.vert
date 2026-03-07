@@ -8,6 +8,7 @@ uniform mat4x4 vp;
 uniform sampler2D texture;
 
 out vec4 windData;
+out uvec2 scaledPos;
 
 void main ()
 {
@@ -16,6 +17,7 @@ void main ()
   windData = data;
 
   vec4 pos4 = vec4(vec2(pos) * scale, float(data.z) * 0.01 + 5, 1.0);
+  scaledPos = uvec2(vec2(pos) * scale);
 
   gl_Position = pos4 * vp;
 }
