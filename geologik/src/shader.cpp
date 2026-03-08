@@ -336,7 +336,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     puts("Error compiling fragment shader.\nThe following error occured:");
     puts(buffer);
-
+    
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
 
@@ -359,7 +359,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
 
     puts("Error linking shader.\nThe following error occured:");
     puts(buffer);
-
+    
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
 

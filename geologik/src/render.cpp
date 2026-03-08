@@ -70,6 +70,7 @@ static struct
   {
     shader terrainShader;
     shader windShader;
+    float windNoiseZCoord;
     vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // -> plane segment?
   } terrain; // -> scene?
 
@@ -196,7 +197,7 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
 
     {
       texture_create(&_Render.erosion.temperatureTex);
-
+      
       uint8_t *pData;
       LS_ERROR_CHECK(lsAllocZero(&pData, _Render.textureWidth * _Render.textureWidth));
 
@@ -215,6 +216,8 @@ lsResult render_init(lsAppState *pAppState, const terrain *pTerrain)
       texture_set(&_Render.erosion.windTex, pData, vec2s((_Render.textureWidth)));
       lsFreePtr(&pData);
     }
+
+    _Render.terrain.windNoiseZCoord = 0;
   }
 
   // Create Terrain.
@@ -384,6 +387,7 @@ void render_drawScene()
   shader_setUniform(&_Render.terrain.windShader, "scale", _Render.terrainWidth / (float_t)_Render.erosion.windTex.resolution.y);
   shader_setUniform(&_Render.terrain.windShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.windShader, "texture", &_Render.erosion.windTex);
+  shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
 
   for (uint32_t y = 0; y < _Render.erosion.windTex.resolution.y; y += quadCountY)
   {
@@ -395,6 +399,8 @@ void render_drawScene()
   }
 
   render_setBlendEnabled(false);
+
+  _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.002f, 1024.f);
 }
 
 void render_computeTerrain(const lsAppState *pAppState)
