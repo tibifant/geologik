@@ -48,11 +48,12 @@ vec3 voronoi3d(const in vec3 x) {
 void main()
 {
   float windStrength = clamp(length(windData.xy) * 12, 0, 1);
-  float alpha = 1 - windStrength;
-  alpha = alpha * alpha;
-  alpha = 1 - alpha;
-
-  vec4 outColor = vec4(mix(vec3(0.2, 0.75, 0.9), vec3(1), windStrength), max(alpha - 0.2, 0) * 0.7);
+  //float alpha = 1 - windStrength;
+  //alpha = alpha * alpha;
+  //alpha = 1 - alpha;
+  //alpha = max(alpha - 0.2, 0) * 0.7;
+//
+  //vec3 outColor = mix(vec3(0.2, 0.75, 0.9), vec3(1), windStrength);
   //color = vec4(windData.xy * 5 + 0.5, 0.5, 0.7);
   
   vec3 noisePos = vec3(scaledPos, noiseZ + windData.z);
@@ -62,7 +63,7 @@ void main()
 
   for (uint i = 0; i < steps; i++)
   {
-    float dot_ = (1 - voronoi3d(noisePos).x) - 0.85;
+    float dot_ = (1 - voronoi3d(noisePos).x) - 0.8;
     dot_ *= 1000;
     dot_ = max(dot_, 0);
     dotColor += dot_;
@@ -70,6 +71,7 @@ void main()
     noisePos.xy += vec2(windData.xy * 4);
   }
 
-  //color = vec4(vec3(0), float(foundDot));
-  color = vec4(dotColor); // TODO: combine with previous (with alpha maxed at what it was before when there is a dot else a little lower than before)
+  //outColor = mix(outColor, vec3(dotColor), dotColor);
+  //color = vec4(outColor, alpha); // TODO: combine with previous (with alpha maxed at what it was before when there is a dot else a little lower than before)
+  color = vec4(dotColor);
 }
