@@ -52,15 +52,14 @@ void main()
   //alpha = alpha * alpha;
   //alpha = 1 - alpha;
   //alpha = max(alpha - 0.2, 0) * 0.7;
-//
+  //
   //vec3 outColor = mix(vec3(0.2, 0.75, 0.9), vec3(1), windStrength);
-  //color = vec4(windData.xy * 5 + 0.5, 0.5, 0.7);
+  ////color = vec4(windData.xy * 5 + 0.5, 0.5, 0.7);
   
-  vec3 noisePos = vec3(scaledPos, noiseZ + windData.z);
+  vec3 noisePos = vec3(scaledPos, noiseZ + windData.z * 0.001);
   float dotColor = 0;
 
-  int steps = int(windStrength * 20); // TODO make it lines when wind is strong
-  steps = steps < 10 ? 0 : steps;
+  int steps = int((windStrength - 0.4) * 42);
 
   for (int i = 0; i < steps; i++)
   {
