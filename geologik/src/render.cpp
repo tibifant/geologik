@@ -400,7 +400,7 @@ void render_drawScene()
 
   render_setBlendEnabled(false);
 
-  _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.002f, 1024.f);
+  _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.001f, 1024.f);
 }
 
 void render_computeTerrain(const lsAppState *pAppState)

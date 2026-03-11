@@ -59,11 +59,12 @@ void main()
   vec3 noisePos = vec3(scaledPos, noiseZ + windData.z);
   float dotColor = 0;
 
-  uint steps = uint(windStrength * 24 - 4); // TODO make it lines when wind is strong
+  int steps = int(windStrength * 20); // TODO make it lines when wind is strong
+  steps = steps < 10 ? 0 : steps;
 
-  for (uint i = 0; i < steps; i++)
+  for (int i = 0; i < steps; i++)
   {
-    float dot_ = (1 - voronoi3d(noisePos).x) - 0.8;
+    float dot_ = (1 - voronoi3d(noisePos).x) - 0.85;
     dot_ *= 1000;
     dot_ = max(dot_, 0);
     dotColor += dot_;
