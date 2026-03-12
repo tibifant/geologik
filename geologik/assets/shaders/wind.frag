@@ -72,5 +72,7 @@ void main()
     noisePos.xy += vec2(windData.xy * 4);
   }
 
-  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha + dotColor * 0.1);
+  dotColor = clamp(dotColor, 0, 1);
+
+  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha)); // TODO: add smoth step to added dotColor for smoth transitions
 }
