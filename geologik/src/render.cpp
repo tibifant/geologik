@@ -381,7 +381,7 @@ void render_drawScene()
   glDisable(GL_CULL_FACE);
   render_setBlendMode(rBF_AlphaBlend);
   render_setBlendEnabled(true);
-
+  
   texture_bind(&_Render.erosion.windTex, 1);
   shader_bind(&_Render.terrain.windShader);
   shader_setUniform(&_Render.terrain.windShader, "scale", _Render.terrainWidth / (float_t)_Render.erosion.windTex.resolution.y);
@@ -400,7 +400,7 @@ void render_drawScene()
 
   render_setBlendEnabled(false);
 
-  _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.001f, 1024.f);
+  _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.002f, 1024.f);
 }
 
 void render_computeTerrain(const lsAppState *pAppState)
