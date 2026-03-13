@@ -60,7 +60,7 @@ void main()
   float dotColor = 0;
 
   int steps = int(windStrength * 20);
-  steps -= (steps > 8) ? 0 : 8;
+  steps -= (steps > 4) ? 0 : 8;
 
   for (int i = 0; i < steps; i++)
   {
@@ -72,7 +72,7 @@ void main()
     noisePos.xy += vec2(windData.xy * 4);
   }
 
-  dotColor = clamp(dotColor, 0, 1);
+  dotColor = smoothstep(0, 1, clamp(dotColor, 0, 1));
 
-  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha)); // TODO: add smoth step to added dotColor for smoth transitions
+  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
 }

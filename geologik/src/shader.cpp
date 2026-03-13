@@ -81,7 +81,7 @@ lsResult shader_createFromFile_compute(shader *pShader, const char *computePath)
 
 epilogue:
   lsFreePtr(&computeSource);
-
+  
   return result;
 }
 
