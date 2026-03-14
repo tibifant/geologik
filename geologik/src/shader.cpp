@@ -389,9 +389,9 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
   lsResult result = lsR_Success;
 
   char *cleanSource = nullptr;
-
+  
   GLuint shaderHandle = (GLuint)-1;
-
+  
   LS_ERROR_IF(pShader == nullptr || computeSource == nullptr, lsR_ArgumentNull);
 
   pShader->type = st_compute;

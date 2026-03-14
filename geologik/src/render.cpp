@@ -71,6 +71,7 @@ static struct
     shader terrainShader;
     shader windShader;
     float windNoiseZCoord;
+    float windPatternSkipValue = 0;
     vertexBuffer<vb_attribute_uint<2, _Attrib_Pos>> buffer; // -> plane segment?
   } terrain; // -> scene?
 
@@ -388,6 +389,7 @@ void render_drawScene()
   shader_setUniform(&_Render.terrain.windShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.windShader, "texture", &_Render.erosion.windTex);
   shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
+  shader_setUniform(&_Render.terrain.windShader, "patternSkipValue", _Render.terrain.windPatternSkipValue);
 
   for (uint32_t y = 0; y < _Render.erosion.windTex.resolution.y; y += quadCountY)
   {
@@ -401,6 +403,7 @@ void render_drawScene()
   render_setBlendEnabled(false);
 
   _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.002f, 1024.f);
+  _Render.terrain.windPatternSkipValue = lsMod(_Render.terrain.windPatternSkipValue + 0.01f, 21.f);
 }
 
 void render_computeTerrain(const lsAppState *pAppState)
@@ -444,7 +447,7 @@ void render_computeTerrain(const lsAppState *pAppState)
     shader_setUniform(&_Render.erosion.windShader, "selfHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
 
     shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
-
+    
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
   }
 
