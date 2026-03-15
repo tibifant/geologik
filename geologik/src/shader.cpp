@@ -349,7 +349,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
   glAttachShader(pShader->shaderProgram, fragmentShaderHandle);
 
   glLinkProgram(pShader->shaderProgram);
-
+  
   glGetProgramiv(pShader->shaderProgram, GL_LINK_STATUS, &status);
 
   if (status != GL_TRUE)

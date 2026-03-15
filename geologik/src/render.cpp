@@ -403,7 +403,7 @@ void render_drawScene()
   render_setBlendEnabled(false);
 
   _Render.terrain.windNoiseZCoord = lsMod(_Render.terrain.windNoiseZCoord + 0.002f, 1024.f);
-  _Render.terrain.windPatternSkipValue = lsMod(_Render.terrain.windPatternSkipValue + 0.01f, 21.f);
+  _Render.terrain.windPatternSkipValue = lsMod(_Render.terrain.windPatternSkipValue + 0.1f, 21.f);
 }
 
 void render_computeTerrain(const lsAppState *pAppState)
