@@ -61,8 +61,11 @@ void main()
 
   vec3 noisePos = vec3(scaledPos, noiseZ + windData.z * 0.001);
 
-  int steps = int(windStrength * 20);
+  int steps = int(windStrength * 10);
   steps -= (steps > 4) ? 0 : 8;
+  steps = 5;
+
+  vec2 windDir = normalize(windData.xy) * 4;
 
   for (int i = 0; i < steps; i++)
   {
@@ -74,10 +77,11 @@ void main()
     dot_ = max(dot_, 0);
     dotColor += dot_;
 
-    noisePos.xy += vec2(windData.xy * 4);
+    noisePos.xy += windDir;
   }
 
   dotColor = smoothstep(0, 1, clamp(dotColor, 0, 1));
 
   color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
+  color = vec4(vec3(dotColor), 1);
 }
