@@ -61,20 +61,20 @@ void main()
 
   vec3 noisePos = vec3(scaledPos, noiseZ + windData.z * 0.001);
 
-  int steps = int(windStrength * 10);
+  int steps = int(windStrength * 20);
   steps -= (steps > 4) ? 0 : 8;
-  steps = 5;
 
-  vec2 windDir = normalize(windData.xy) * 4;
+  vec2 windDir = normalize(windData.xy) * 0.2;
+  float dotSizeFac = (1.0 - float(steps - 4) / 16.0) * (0.96 - 0.7) + 0.7; 
 
   for (int i = 0; i < steps; i++)
   {
-    if (i < int(patternSkipValue + 1) && i > int(patternSkipValue - 1))
-      continue;
+    //if (i < int(patternSkipValue + 1) && i > int(patternSkipValue - 1))
+      //continue;
     
-    float dot_ = (1 - voronoi3d(noisePos).x) - 0.8;
+    float dot_ = (1 - voronoi3d(noisePos).x) - dotSizeFac;
     dot_ *= 1000;
-    dot_ = max(dot_, 0);
+    dot_ = max(dot_, 0);    
     dotColor += dot_;
 
     noisePos.xy += windDir;
@@ -83,5 +83,5 @@ void main()
   dotColor = smoothstep(0, 1, clamp(dotColor, 0, 1));
 
   color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
-  color = vec4(vec3(dotColor), 1);
+  //color = vec4(vec3(dotColor), 1);
 }

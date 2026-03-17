@@ -339,7 +339,7 @@ lsResult shader_create_vertex_fragment_internal(shader *pShader, const char *ver
     
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
-
+  
   if (requestNewProgram)
     pShader->shaderProgram = glCreateProgram();
   else
