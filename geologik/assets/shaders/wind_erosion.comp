@@ -101,7 +101,7 @@ void main()
 
     while (particleHeight > float(targetTileHeight))
     {
-      particleHeight -= 1;//0.1;
+      particleHeight -= 0.01;//0.1;
       windDir *= 0.95; // slow down over time
 
       if (dot(windDir, windDir) < 1)
@@ -150,5 +150,6 @@ void main()
 
     if (!outOfBounds)
       addTerrain(targetTileIdx, diff, highestTerrainType);
-  }   
+  }
+  // it seems like terrain gets stuck on something, then this rises and then even more terrain gets stuck there - maybe an issue of adding all the terrain to one tile instead of spreading it further?
 }
