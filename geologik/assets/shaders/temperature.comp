@@ -92,12 +92,11 @@ void main()
     
     // wind temp
     vec4 wind = imageLoad(windTex, texCoord);
-    float heightDiff = clamp((wind.z - avgHeight) / 50000, 0 , 1);
+    float heightDiff = clamp((wind.z - avgHeight) / 50000, 0 , 1); // TODO: What is supposed to happen to the temp? Not this for sure!
     wind.w = mix(temp, wind.w, heightDiff);
 
     // set new temp
     imageStore(texture, texCoord, vec4(scaledTemp, 0, 0, 0));
-    wind.z = avgHeight; // REMOVE AFTER TESTING!
     
     imageStore(windTex, texCoord, wind);
   }

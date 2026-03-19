@@ -146,9 +146,6 @@ void main()
     newHeight = max(newHeight, terrainHeight);
 
     currentTile.z = newHeight;
-    
-    // TODO height from neighbours with littel influence
-    // TODO remove height in temp shader
 
     imageStore(windTex, texCoord, currentTile);
   }
