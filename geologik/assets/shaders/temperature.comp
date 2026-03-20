@@ -13,7 +13,6 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform layout(r8, binding = 0) image2D texture;
-uniform layout(rgba32f, binding = 1) image2D windTex; // vel.x vel.y height, air density
 
 uniform float seasonTempFac;
 uniform float lerpFactor;

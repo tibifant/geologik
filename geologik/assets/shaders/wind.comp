@@ -12,12 +12,14 @@ layout(binding = 0, std430) buffer data
   tile tiles[];
 };
 
-uniform layout(rgba32f) image2D windTex; // vel.x, vel.y, height, air temp
+uniform layout(rgba32f, binding = 0) image2D windTex; // vel.x, vel.y, height, air temp
+uniform layout(r8, binding = 1) image2D surfaceTempTex;
 uniform uint texWidth;
 uniform uint terrainWidth;
 uniform float velocityGradientInfluence;
 uniform float velocityNeighborInfluence;
 uniform float sourceTemperatureInfluence;
+uniform float surfaceTemperatureInfluence;
 uniform float sourceVelocityInfluence;
 uniform float sourceHeightInfluence;
 uniform float neighborHeightInfluence;
@@ -149,7 +151,7 @@ void main()
     const float maxTemp = 23;
     const float maxSunTemp = 8 * 2.2;
     float heightDiff = clamp((currentTile.z - terrainHeight) / 50000, 0 , 1);
-    float temp = mix(imageLoad(tempTex, texCoord) * (maxTemp + maxSunTemp) + minTemp, currentTile.w, heightDiff);
+    float temp = mix(imageLoad(surfaceTempTex, texCoord).x * (maxTemp + maxSunTemp) + minTemp, currentTile.w, heightDiff);
     currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
     
     currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
