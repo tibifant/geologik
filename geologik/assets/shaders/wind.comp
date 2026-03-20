@@ -129,9 +129,6 @@ void main()
     vec2 velDiff = sourceTile.xy - currentTile.xy;
     velDiff *= heightDiffFac;
     currentTile.xy = mix(currentTile.xy, currentTile.xy + velDiff, sourceVelocityInfluence);
-    
-    // temperature
-    currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
 
     // height
     float newHeight = currentTile.z;
@@ -146,6 +143,16 @@ void main()
     newHeight = max(newHeight, terrainHeight);
 
     currentTile.z = newHeight;
+
+    // temperature
+    const float minTemp = -7;
+    const float maxTemp = 23;
+    const float maxSunTemp = 8 * 2.2;
+    float heightDiff = clamp((currentTile.z - terrainHeight) / 50000, 0 , 1);
+    float temp = mix(imageLoad(tempTex, texCoord) * (maxTemp + maxSunTemp) + minTemp, currentTile.w, heightDiff);
+    currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
+    
+    currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
 
     imageStore(windTex, texCoord, currentTile);
   }
