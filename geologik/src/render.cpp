@@ -388,7 +388,7 @@ void render_drawScene()
   shader_setUniform(&_Render.terrain.windShader, "scale", _Render.terrainWidth / (float_t)_Render.erosion.windTex.resolution.y);
   shader_setUniform(&_Render.terrain.windShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.windShader, "texture", &_Render.erosion.windTex);
-  shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
+  //shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
   //shader_setUniform(&_Render.terrain.windShader, "patternSkipValue", _Render.terrain.windPatternSkipValue);
   
   for (uint32_t y = 0; y < _Render.erosion.windTex.resolution.y; y += quadCountY)
@@ -433,19 +433,19 @@ void render_computeTerrain(const lsAppState *pAppState)
     texture_bind_image(&_Render.erosion.windTex, 0, tia_read_write);
     shader_setUniform(&_Render.erosion.windShader, "windTex", &_Render.erosion.windTex);
 
-    texture_bind_image(&_Render.erosion.temperatureTex, 1, tia_read_write);
+    texture_bind_image(&_Render.erosion.temperatureTex, 1, tia_read_only);
     shader_setUniform(&_Render.erosion.windShader, "surfaceTempTex", &_Render.erosion.temperatureTex);
 
     shader_setUniform(&_Render.erosion.windShader, "texWidth", _Render.textureWidth);
     shader_setUniform(&_Render.erosion.windShader, "terrainWidth", _Render.terrainWidth);
     shader_setUniform(&_Render.erosion.windShader, "velocityGradientInfluence", _Render.erosion.firstCall ? 1.f : 0.05f);
-    shader_setUniform(&_Render.erosion.windShader, "velocityNeighborInfluence", _Render.erosion.firstCall ? 1.f : 0.05f);
-    shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.3f);
-    shader_setUniform(&_Render.erosion.windShader, "surfaceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
+    shader_setUniform(&_Render.erosion.windShader, "velocityNeighborInfluence", _Render.erosion.firstCall ? 0.f : 0.05f);
+    //shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 0.f : 0.3f);
+    //shader_setUniform(&_Render.erosion.windShader, "surfaceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
     shader_setUniform(&_Render.erosion.windShader, "sourceVelocityInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
-    shader_setUniform(&_Render.erosion.windShader, "sourceHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
-    shader_setUniform(&_Render.erosion.windShader, "neighborHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.01f);
-    shader_setUniform(&_Render.erosion.windShader, "selfHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
+    //shader_setUniform(&_Render.erosion.windShader, "sourceHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
+    //shader_setUniform(&_Render.erosion.windShader, "neighborHeightInfluence", _Render.erosion.firstCall ? 0.f : 0.01f);
+    //shader_setUniform(&_Render.erosion.windShader, "selfHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
 
     shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
     
@@ -457,7 +457,7 @@ void render_computeTerrain(const lsAppState *pAppState)
     const bool thaw = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_M);
     const bool evaporate = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_N);
     const bool rain = lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_P);
-
+    
     shader_bind(&_Render.erosion.environmentShader);
     texture_bind_image(&_Render.erosion.temperatureTex, 0, tia_read_only);
     shader_setUniform(&_Render.erosion.environmentShader, "texture", &_Render.erosion.temperatureTex);

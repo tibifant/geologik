@@ -48,7 +48,7 @@ vec3 voronoi3d(const in vec3 x) {
 
 void main()
 {
-  float windStrength = clamp(length(windData.xy) * 12, 0, 1);
+  float windStrength = clamp(length(windData.xy) * 12, 0.0, 1.0);
   float alpha = 1 - windStrength;
   alpha = alpha * alpha;
   alpha = 1 - alpha;
@@ -83,5 +83,12 @@ void main()
   dotColor = smoothstep(0, 1, clamp(dotColor, 0, 1));
 
   color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
+  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), 1);
+      const float winterMinTemp = -7;
+    const float summerMinTemp = -3;
+    const float winterMaxTemp = 16;
+    const float summerMaxTemp = 20;
+    const float maxSunTemp = 8 * 2.2;
+  color = vec4(vec3((windData.w + winterMinTemp) / (summerMaxTemp + maxSunTemp)), 1);
   //color = vec4(vec3(dotColor), 1);
 }

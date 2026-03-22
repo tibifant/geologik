@@ -13,7 +13,7 @@ layout(binding = 0, std430) buffer data
 };
 
 uniform layout(rgba32f, binding = 0) image2D windTex; // vel.x, vel.y, height, air temp
-uniform layout(r8, binding = 1) image2D surfaceTempTex;
+uniform layout(r8, binding = 1) readonly image2D surfaceTempTex;
 uniform uint texWidth;
 uniform uint terrainWidth;
 uniform float velocityGradientInfluence;
@@ -71,13 +71,6 @@ void main()
   { 
     ivec2 texCoord = ivec2(x, y);
 
-    // TODO! set density
-    // density = 1-temp (real world range: ~ 1.34 - 1.14) & influence by previous
-
-    // pressure: roughly 0m - 5000m ~ 1 - 0.84 -> density: p /temp  -> -7 - 31,584
-
-    // wind: ~ 0 km/h - 140 km/h 
-
     vec4 currentTile = imageLoad(windTex, texCoord);
     float currentDensity = density_from_height_temperature(currentTile.w, 50000);
     vec2 newVel = currentTile.xy;
@@ -132,29 +125,33 @@ void main()
     velDiff *= heightDiffFac;
     currentTile.xy = mix(currentTile.xy, currentTile.xy + velDiff, sourceVelocityInfluence);
 
-    // height
-    float newHeight = currentTile.z;
-    newHeight = mix(newHeight, neighborHeight / (count - 1), neighborHeightInfluence);
-    newHeight = mix(newHeight, sourceTile.z, sourceHeightInfluence);
-    newHeight = mix(newHeight, currentTile.z, selfHeightInfluence);
+    //// height
     float terrainHeight = average_height_from_position(texCoord);
+    currentTile.z = terrainHeight;
+    
+    //float newHeight = currentTile.z;
+    //newHeight = mix(newHeight, neighborHeight / (count - 1), neighborHeightInfluence);
+    //newHeight = mix(newHeight, sourceTile.z, sourceHeightInfluence);
+    //newHeight = mix(newHeight, currentTile.z, selfHeightInfluence);
 
-    if (newHeight > terrainHeight)
-      newHeight = newHeight - 1, terrainHeight;
+    //if (newHeight > terrainHeight)
+    //  newHeight = newHeight - 0.01;
 
-    newHeight = max(newHeight, terrainHeight);
+    //newHeight = max(newHeight, terrainHeight);
 
-    currentTile.z = newHeight;
+    //currentTile.z = newHeight;
 
     // temperature
+    //currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
     const float minTemp = -7;
     const float maxTemp = 23;
     const float maxSunTemp = 8 * 2.2;
     float heightDiff = clamp((currentTile.z - terrainHeight) / 50000, 0 , 1);
-    float temp = mix(imageLoad(surfaceTempTex, texCoord).x * (maxTemp + maxSunTemp) + minTemp, currentTile.w, heightDiff);
-    currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
+    float surfaceTemp = imageLoad(surfaceTempTex, texCoord).x;
+    float temp = mix(surfaceTemp * (maxTemp + maxSunTemp) + minTemp, currentTile.w, heightDiff);
+    //currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
+    currentTile.w = temp;
     
-    currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
 
     imageStore(windTex, texCoord, currentTile);
   }

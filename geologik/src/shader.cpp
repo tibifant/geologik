@@ -215,7 +215,7 @@ uint32_t shader_getUniformIndex(shader *pShader, const char *uniformName)
   shader_name_ref ref;
   ref.index = glGetUniformLocation(pShader->shaderProgram, uniformName);
   lsAssert(ref.index != (uint32_t)-1);
-
+  
   const size_t length = strlen(uniformName);
 
   if (length >= LS_ARRAYSIZE_C_STYLE(shader_name_ref::name))
@@ -412,7 +412,7 @@ lsResult shader_create_compute_internal(shader *pShader, const char *computeSour
     
     puts("Error compiling compute shader.\nThe following error occured:");
     puts(buffer);
-    
+
     LS_ERROR_SET(lsR_ResourceInvalid);
   }
   
