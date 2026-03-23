@@ -78,6 +78,33 @@ void main()
     float neighborHeight = 0;
     int count = 1;
 
+    ivec2 sourcePos = texCoord + ivec2(normalize(currentTile.xy) * 1.5);
+    vec4 sourceTile = imageLoad(windTex, sourcePos);
+
+    // height
+    float terrainHeight = average_height_from_position(texCoord);
+    
+    float newHeight = currentTile.z;
+    newHeight = mix(newHeight, neighborHeight / (count - 1), neighborHeightInfluence);
+    newHeight = mix(newHeight, sourceTile.z, sourceHeightInfluence);
+    newHeight = mix(newHeight, currentTile.z, selfHeightInfluence);
+
+    if (newHeight > terrainHeight)
+      newHeight = newHeight - 0.01;
+
+    newHeight = max(newHeight, terrainHeight);
+    currentTile.z = newHeight;
+
+    // temperature
+    const float minTemp = -7;
+    const float maxTemp = 23;
+    const float maxSunTemp = 8 * 2.2;
+    float heightDiff = clamp((currentTile.z - terrainHeight) / 50000, 0 , 1);
+    float surfaceTemp = imageLoad(surfaceTempTex, texCoord).x * (maxTemp + maxSunTemp) + minTemp;
+    float temp = mix(surfaceTemp , currentTile.w, heightDiff);
+    currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
+    currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
+    
     for (uint i = 0; i < 8; i++)
     {
       ivec2 tilePos = texCoord + neighbours[i];
@@ -104,11 +131,7 @@ void main()
       neighborHeight += average_height_from_position(tilePos);
     }
 
-    // TODO: height - adapt wind height according to terrain (& according to air density)
     newVel *= 10;
-    
-    ivec2 sourcePos = texCoord + ivec2(normalize(currentTile.xy) * 1.5);
-    vec4 sourceTile = imageLoad(windTex, sourcePos);
 
     float heightDiffFac = sourceTile.z / currentTile.z;
     heightDiffFac *= heightDiffFac;
@@ -124,33 +147,6 @@ void main()
     vec2 velDiff = sourceTile.xy - currentTile.xy;
     velDiff *= heightDiffFac;
     currentTile.xy = mix(currentTile.xy, currentTile.xy + velDiff, sourceVelocityInfluence);
-
-    //// height
-    float terrainHeight = average_height_from_position(texCoord);
-    currentTile.z = terrainHeight;
-    
-    //float newHeight = currentTile.z;
-    //newHeight = mix(newHeight, neighborHeight / (count - 1), neighborHeightInfluence);
-    //newHeight = mix(newHeight, sourceTile.z, sourceHeightInfluence);
-    //newHeight = mix(newHeight, currentTile.z, selfHeightInfluence);
-
-    //if (newHeight > terrainHeight)
-    //  newHeight = newHeight - 0.01;
-
-    //newHeight = max(newHeight, terrainHeight);
-
-    //currentTile.z = newHeight;
-
-    // temperature
-    //currentTile.w = mix(currentTile.w, sourceTile.w, sourceTemperatureInfluence);
-    const float minTemp = -7;
-    const float maxTemp = 23;
-    const float maxSunTemp = 8 * 2.2;
-    float heightDiff = clamp((currentTile.z - terrainHeight) / 50000, 0 , 1);
-    float surfaceTemp = imageLoad(surfaceTempTex, texCoord).x * (maxTemp + maxSunTemp) + minTemp;
-    float temp = mix(surfaceTemp , currentTile.w, heightDiff);
-    //currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
-    currentTile.w = temp;    
 
     imageStore(windTex, texCoord, currentTile);
   }

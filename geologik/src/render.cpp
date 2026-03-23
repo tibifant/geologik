@@ -388,7 +388,7 @@ void render_drawScene()
   shader_setUniform(&_Render.terrain.windShader, "scale", _Render.terrainWidth / (float_t)_Render.erosion.windTex.resolution.y);
   shader_setUniform(&_Render.terrain.windShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.windShader, "texture", &_Render.erosion.windTex);
-  //shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
+  shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
   //shader_setUniform(&_Render.terrain.windShader, "patternSkipValue", _Render.terrain.windPatternSkipValue);
   
   for (uint32_t y = 0; y < _Render.erosion.windTex.resolution.y; y += quadCountY)
@@ -440,12 +440,12 @@ void render_computeTerrain(const lsAppState *pAppState)
     shader_setUniform(&_Render.erosion.windShader, "terrainWidth", _Render.terrainWidth);
     shader_setUniform(&_Render.erosion.windShader, "velocityGradientInfluence", _Render.erosion.firstCall ? 1.f : 0.05f);
     shader_setUniform(&_Render.erosion.windShader, "velocityNeighborInfluence", _Render.erosion.firstCall ? 0.f : 0.05f);
-    //shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 0.f : 0.3f);
-    //shader_setUniform(&_Render.erosion.windShader, "surfaceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
+    shader_setUniform(&_Render.erosion.windShader, "sourceTemperatureInfluence", _Render.erosion.firstCall ? 0.f : 0.3f);
+    shader_setUniform(&_Render.erosion.windShader, "surfaceTemperatureInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
     shader_setUniform(&_Render.erosion.windShader, "sourceVelocityInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
-    //shader_setUniform(&_Render.erosion.windShader, "sourceHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
-    //shader_setUniform(&_Render.erosion.windShader, "neighborHeightInfluence", _Render.erosion.firstCall ? 0.f : 0.01f);
-    //shader_setUniform(&_Render.erosion.windShader, "selfHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
+    shader_setUniform(&_Render.erosion.windShader, "sourceHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.1f);
+    shader_setUniform(&_Render.erosion.windShader, "neighborHeightInfluence", _Render.erosion.firstCall ? 0.f : 0.01f);
+    shader_setUniform(&_Render.erosion.windShader, "selfHeightInfluence", _Render.erosion.firstCall ? 1.f : 0.2f);
 
     shader_dispatch_compute(&_Render.erosion.windShader, _Render.textureWidth, 1, 1);
     
