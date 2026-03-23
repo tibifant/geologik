@@ -147,11 +147,10 @@ void main()
     const float maxTemp = 23;
     const float maxSunTemp = 8 * 2.2;
     float heightDiff = clamp((currentTile.z - terrainHeight) / 50000, 0 , 1);
-    float surfaceTemp = imageLoad(surfaceTempTex, texCoord).x;
-    float temp = mix(surfaceTemp * (maxTemp + maxSunTemp) + minTemp, currentTile.w, heightDiff);
+    float surfaceTemp = imageLoad(surfaceTempTex, texCoord).x * (maxTemp + maxSunTemp) + minTemp;
+    float temp = mix(surfaceTemp , currentTile.w, heightDiff);
     //currentTile.w = mix(currentTile.w, temp, surfaceTemperatureInfluence);
-    currentTile.w = temp;
-    
+    currentTile.w = temp;    
 
     imageStore(windTex, texCoord, currentTile);
   }
