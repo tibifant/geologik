@@ -82,5 +82,5 @@ void main()
 
   dotColor = smoothstep(0, 1, clamp(dotColor, 0, 1));
 
-  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));s
+  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
 }
