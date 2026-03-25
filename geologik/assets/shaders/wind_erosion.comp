@@ -92,14 +92,14 @@ void main()
     if (dot(windDir, windDir) < 1) // wind not strong enough to carry to another tile
       continue;
 
-    float particleHeight = windData.z;
+    float particleHeight = max(windData.z, height_from_idx(selfIndex));
     ivec2 targetTilePos = ivec2(x, y) + ivec2(windDir);
     uint targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
     uint targetTileHeight = height_from_idx(targetTileIdx);
     
-    bool outOfBounds = false;
+    bool outOfBounds = targetTilePos.x < 0 && targetTilePos.y < 0 && targetTilePos.x > terrainWidth - 1 && targetTilePos.y > terrainWidth - 1;
 
-    while (particleHeight > float(targetTileHeight))
+    while (particleHeight > float(targetTileHeight) && !outOfBounds)
     {
       particleHeight -= 1;//0.1;
       windDir *= 0.95; // slow down over time
@@ -112,10 +112,7 @@ void main()
       targetTileHeight = height_from_idx(targetTileIdx);
 
       if (targetTilePos.x < 0 && targetTilePos.y < 0 && targetTilePos.x > terrainWidth - 1 && targetTilePos.y > terrainWidth - 1)
-      {
         outOfBounds = true;
-        break;
-      }
     }
 
     uint highestTerrainType = 0;
