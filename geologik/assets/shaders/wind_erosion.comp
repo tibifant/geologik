@@ -101,7 +101,7 @@ void main()
 
     while (particleHeight > float(targetTileHeight) && !outOfBounds)
     {
-      particleHeight -= 1;//0.1;
+      particleHeight -= 0.1;
       windDir *= 0.95; // slow down over time
 
       if (dot(windDir, windDir) < 1)
