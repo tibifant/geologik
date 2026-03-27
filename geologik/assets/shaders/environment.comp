@@ -77,7 +77,7 @@ void main()
   uint offset = y * width;
 
   for (uint x = 0; x < width; x++)
-  {    
+  {
     uint i = offset + x;
 
     tile currentTile = tiles[i];

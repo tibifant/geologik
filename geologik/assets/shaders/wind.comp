@@ -61,7 +61,7 @@ float average_height_from_position(ivec2 pos)
   return float(heightTop + heightRight + heightBottom + heightLeft) / 4;
 }
 
-const ivec2 neighbours[8] = ivec2[8](ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1));
+const ivec2 neighbours[8] = { ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1), ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1) };
 
 void main()
 {
