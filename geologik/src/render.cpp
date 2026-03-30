@@ -473,10 +473,11 @@ void render_computeTerrain(const lsAppState *pAppState)
     glFinish();
   }
 
-  // erosion
+  // hyrdraulic erosion
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_1))
   {
     shader_bind(&_Render.erosion.hydraulicErosionShader);
+
     shader_setUniform(&_Render.erosion.hydraulicErosionShader, "width", _Render.terrainWidth);
     shader_setUniform(&_Render.erosion.hydraulicErosionShader, "hashValue", uint32_t(lsGetRand()));
 
@@ -497,17 +498,16 @@ void render_computeTerrain(const lsAppState *pAppState)
     }
   }
 
+  // wind erosion
   if (lsKeyboardState_IsKeyDown(&pAppState->keyboardState, SDL_SCANCODE_2))
   {
     shader_bind(&_Render.erosion.windErosionShader);
-
     texture_bind_image(&_Render.erosion.windTex, 0, tia_read_only);
 
     shader_setUniform(&_Render.erosion.windErosionShader, "windTex", &_Render.erosion.windTex);
     shader_setUniform(&_Render.erosion.windErosionShader, "terrainWidth", _Render.terrainWidth);
 
     shader_dispatch_compute(&_Render.erosion.windErosionShader, _Render.terrainWidth, 1, 1);
-
   }
 
   if (_Render.erosion.firstCall)
