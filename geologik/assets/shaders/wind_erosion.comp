@@ -95,11 +95,14 @@ void main()
     float particleHeight = max(windData.z, height_from_idx(selfIndex));
     ivec2 targetTilePos = ivec2(x, y) + ivec2(windDir);
     uint targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
-    uint targetTileHeight = height_from_idx(targetTileIdx);
+    float targetTileHeight = float(height_from_idx(targetTileIdx));
+
+    if (particleHeight < targetTileHeight)
+      continue;
     
     bool outOfBounds = targetTilePos.x < 0 && targetTilePos.y < 0 && targetTilePos.x > terrainWidth - 1 && targetTilePos.y > terrainWidth - 1;
 
-    while (particleHeight > float(targetTileHeight) && !outOfBounds)
+    while (particleHeight > targetTileHeight && !outOfBounds)
     {
       particleHeight -= 0.1;
       windDir *= 0.95; // slow down over time
@@ -109,7 +112,7 @@ void main()
 
       targetTilePos += ivec2(windDir);
       targetTileIdx = targetTilePos.y * terrainWidth + targetTilePos.x;
-      targetTileHeight = height_from_idx(targetTileIdx);
+      targetTileHeight = float(height_from_idx(targetTileIdx));
 
       if (targetTilePos.x < 0 && targetTilePos.y < 0 && targetTilePos.x > terrainWidth - 1 && targetTilePos.y > terrainWidth - 1)
         outOfBounds = true;
