@@ -55,7 +55,7 @@ void main()
   alpha = max(alpha - 0.2, 0) * 0.7 - 0.1;
   
   vec3 outColor = mix(vec3(0.2, 0.75, 0.9), vec3(1), windStrength);
-  color = vec4(windData.xy * 5 + 0.5, 0.5, 0.7);
+  //color = vec4(windData.xy * 5 + 0.5, 0.5, 0.7);
   
   float dotColor = 0;
 
@@ -82,5 +82,5 @@ void main()
 
   dotColor = smoothstep(0, 1, clamp(dotColor, 0, 1));
 
-  //color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
+  color = vec4(min(outColor + vec3(dotColor * 0.1), 1), alpha * (1 + dotColor * 5 * alpha));
 }

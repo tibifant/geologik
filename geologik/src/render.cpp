@@ -388,7 +388,7 @@ void render_drawScene()
   shader_setUniform(&_Render.terrain.windShader, "scale", (float_t)(_Render.terrainWidth - 1) / (float_t)(_Render.erosion.windTex.resolution.y - 1));
   shader_setUniform(&_Render.terrain.windShader, "vp", _Render.vp.Transpose());
   shader_setUniform(&_Render.terrain.windShader, "texture", &_Render.erosion.windTex);
-  //shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
+  shader_setUniform(&_Render.terrain.windShader, "noiseZ", _Render.terrain.windNoiseZCoord);
   //shader_setUniform(&_Render.terrain.windShader, "patternSkipValue", _Render.terrain.windPatternSkipValue);
   
   for (uint32_t y = 0; y < _Render.erosion.windTex.resolution.y; y += quadCountY)
