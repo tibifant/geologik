@@ -1,9 +1,9 @@
-# Geo-Logik
-## Erosion Simulation
+# Geo-Logik - Erosion Simulation
 
 Geo-Logik simulates erosion on procedurally generated terrain.
 
-Hydralic Erosion under consideration of different simulated environment factors like:
+## Hydralic Erosion:
+Under consideration of different simulated environment factors like:
 - temperature w/ sun movement & seasonal differences
 - rain & snow
 - melting and evaporation
@@ -11,6 +11,13 @@ Hydralic Erosion under consideration of different simulated environment factors 
 <a><img src="./assets/hydraulic_erosion0.png" alt="hydraulic erosion" style="width: pt; max-width: 100%; margin: 10pt auto;"></a>
 <br>
 <a><img src="./assets/hydraulic_erosion1.png" alt="hydraulic erosion" style="width: pt; max-width: 100%; margin: 10pt auto;"></a>
+<br>
+
+## Wind Erosion:
+Based on a wind simulation from equalizing pressure differences (from temperature & height) and coriolis effect.
+<a><img src="./assets/wind_erosion0.png" alt="hydraulic erosion" style="width: pt; max-width: 100%; margin: 10pt auto;"></a>
+<br>
+<a><img src="./assets/wind_erosion1.png" alt="hydraulic erosion" style="width: pt; max-width: 100%; margin: 10pt auto;"></a>
 <br>
 
 ## Keyboard Inputs
